@@ -15,9 +15,23 @@ import { PlusCircle } from "lucide-react";
 import { SubmitEvent, useState } from "react";
 import useCreatePlaylistMutation from "@/features/playlists/api/useCreatePlaylistMutation";
 
-const CreatePlaylistDialog = () => {
-  const [open, setOpen] = useState(false);
+type CreatePlaylistDialogProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode | null;
+};
+
+const CreatePlaylistDialog = ({
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+  trigger,
+}: CreatePlaylistDialogProps = {}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState("");
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? setControlledOpen! : setInternalOpen;
 
   const isValidName = (name: string) => {
     return name.length >= 1 && name.length <= 50;
@@ -43,11 +57,15 @@ const CreatePlaylistDialog = () => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="ml-auto">
-          <PlusCircle size={14} />
-        </Button>
-      </DialogTrigger>
+      {trigger !== null && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button size="icon" variant="ghost" className="ml-auto">
+              <PlusCircle size={14} />
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
 
       <DialogContent className="sm:max-w-sm" showCloseButton={false}>
         <form onSubmit={handleSubmit}>

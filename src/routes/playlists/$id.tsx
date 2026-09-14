@@ -152,7 +152,7 @@ function RouteComponent() {
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold font-heading text-white tracking-tight">
+              <h1 className="text-2xl font-bold font-heading text-foreground tracking-tight">
                 {data.playlist.name}
               </h1>
               <p className="text-xs text-muted-foreground">
@@ -172,7 +172,7 @@ function RouteComponent() {
                 <button
                   onClick={handleShuffle}
                   className={`p-2 rounded-full transition-colors ${
-                    isShuffle ? "text-primary" : "text-muted-foreground hover:text-white"
+                    isShuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                   aria-label="Shuffle"
                 >
@@ -181,7 +181,7 @@ function RouteComponent() {
                 <button
                   onClick={handlePlayAll}
                   aria-label="Play All"
-                  className="size-12 rounded-full bg-primary text-black flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
+                  className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
                 >
                   <Play size={20} className="fill-current ml-0.5" />
                 </button>
@@ -190,13 +190,13 @@ function RouteComponent() {
           </div>
 
           {/* Desktop Header (Figma desktop_playlist.png) */}
-          <div className="hidden sm:flex flex-col gap-4 pb-4 border-b border-white/10">
+          <div className="hidden sm:flex flex-col gap-4 pb-4 border-b border-border/60">
             <div className="space-y-1.5">
-              <h1 className="text-3xl lg:text-5xl font-black font-heading text-white tracking-tight">
+              <h1 className="text-3xl lg:text-5xl font-black font-heading text-foreground tracking-tight">
                 {data.playlist.name}
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-                By <span className="text-white font-semibold">Sonara</span> &bull;{" "}
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                By <span className="text-foreground font-semibold">Sonara</span> &bull;{" "}
                 {songs.length} {songs.length === 1 ? "song" : "songs"} &bull;{" "}
                 {getFormattedDuration(totalDuration)}
               </p>
@@ -209,7 +209,7 @@ function RouteComponent() {
                   size="icon-lg"
                   onClick={handlePlayAll}
                   aria-label="Play All"
-                  className="size-12 sm:size-13 rounded-full bg-primary text-black hover:bg-primary/90 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
+                  className="size-12 sm:size-13 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
                 >
                   <Play size={22} className="fill-current ml-0.5" />
                 </Button>
@@ -220,7 +220,7 @@ function RouteComponent() {
                   onClick={handleShuffle}
                   aria-label="Shuffle"
                   className={`rounded-full size-10 ${
-                    isShuffle ? "text-primary bg-primary/10" : "text-neutral-400 hover:text-white"
+                    isShuffle ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Shuffle size={19} />
@@ -233,12 +233,12 @@ function RouteComponent() {
 
               {/* Desktop Filter Search Pill */}
               <div className="relative w-52 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-neutral-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
                 <Input
                   placeholder="Filter songs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8.5 pr-3 h-9 rounded-full bg-white/5 border-white/10 text-xs text-white placeholder:text-neutral-500 focus:bg-white/10 transition-colors"
+                  className="pl-8.5 pr-3 h-9 rounded-full bg-muted/50 border-border text-xs text-foreground placeholder:text-muted-foreground focus:bg-muted transition-colors"
                 />
               </div>
             </div>
@@ -333,7 +333,7 @@ function RouteComponent() {
                 {uniqueArtists.map((artist) => (
                   <div
                     key={artist}
-                    className="flex items-center gap-3 text-sm text-neutral-200 hover:text-white transition-colors"
+                    className="flex items-center gap-3 text-sm text-foreground hover:text-primary transition-colors"
                   >
                     <div className="size-9 rounded-full bg-linear-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
                       {artist[0]?.toUpperCase() || <User className="size-4" />}

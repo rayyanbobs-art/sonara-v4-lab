@@ -16,6 +16,18 @@ pub fn add_library_folder(db: State<DbState>, path: String) -> Result<String, St
     Ok(import_result)
 }
 
+#[tauri::command]
+pub fn add_audio_files(db: State<DbState>, paths: Vec<String>) -> Result<String, String> {
+    let mut conn = db.0.lock().map_err(|e| e.to_string())?;
+    services::library_service::add_files(&mut conn, paths).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn scan_device_music(db: State<DbState>) -> Result<String, String> {
+    let mut conn = db.0.lock().map_err(|e| e.to_string())?;
+    services::library_service::scan_device_storage(&mut conn).map_err(|e| e.to_string())
+}
+
 // sync library folders - re-scan the folders and update the songs in the database
 #[tauri::command]
 pub fn sync_library_folders(db: State<DbState>) -> Result<String, String> {

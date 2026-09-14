@@ -11,19 +11,19 @@ export const BottomNavBar = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121212]/95 backdrop-blur-2xl border-t border-white/5 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-2xl border-t border-border px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
       <div className="flex items-center justify-around">
         {navItems.map((item) => (
           <Link
             key={item.name}
             to={item.href}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-neutral-400 hover:text-white transition-colors group"
+            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-muted-foreground hover:text-foreground transition-colors group"
             activeProps={{
-              className: "text-white font-semibold",
+              className: "text-foreground font-semibold",
             }}
           >
             {/* Active indicator pill */}
-            <div className="h-[3px] w-0 group-[.text-white]:w-4 bg-primary rounded-full transition-all duration-200" />
+            <div className="h-[3px] w-0 group-[.text-foreground]:w-4 bg-primary rounded-full transition-all duration-200" />
             <item.icon className="size-5 transition-transform group-active:scale-95" />
             <span className="text-[10px] tracking-tight font-medium">{item.name}</span>
           </Link>

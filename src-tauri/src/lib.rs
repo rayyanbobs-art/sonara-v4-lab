@@ -139,6 +139,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             commands::library::add_library_folder,
+            commands::library::add_audio_files,
+            commands::library::scan_device_music,
             commands::library::sync_library_folders,
             commands::library::get_imported_folders,
             commands::library::remove_library_folder,

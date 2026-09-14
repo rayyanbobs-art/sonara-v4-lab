@@ -49,7 +49,7 @@ function RouteComponent() {
               size="icon"
               onClick={() => window.history.back()}
               aria-label="Go Back"
-              className="size-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+              className="size-9 rounded-full bg-card border border-border/60 hover:bg-muted text-foreground"
             >
               <ChevronLeft size={18} />
             </Button>
@@ -58,7 +58,7 @@ function RouteComponent() {
                 <User size={13} />
                 Collection
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black font-heading text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black font-heading text-foreground tracking-tight">
                 Artists
               </h1>
             </div>

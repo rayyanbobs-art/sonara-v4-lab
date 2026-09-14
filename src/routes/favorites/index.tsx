@@ -139,7 +139,7 @@ function RouteComponent() {
               size="icon"
               onClick={() => window.history.back()}
               aria-label="Go Back"
-              className="size-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+              className="size-9 rounded-full bg-card border border-border/60 hover:bg-muted text-foreground"
             >
               <ChevronLeft size={18} />
             </Button>
@@ -156,11 +156,11 @@ function RouteComponent() {
                 placeholder="Search liked songs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 h-10 rounded-full bg-white/5 border-white/10 text-xs focus:bg-white/10"
+                className="pl-9 pr-3 h-10 rounded-full bg-muted/50 border-border text-xs text-foreground focus:bg-muted"
               />
             </div>
             <button
-              className="p-2.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground hover:text-white transition-colors"
+              className="p-2.5 rounded-full bg-card border border-border/60 text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Sort Playlist"
             >
               <ArrowUpDown size={15} />
@@ -169,7 +169,7 @@ function RouteComponent() {
 
           {/* Mobile Artwork Hero (Figma mobile_playlist.png) */}
           <div className="flex sm:hidden flex-col items-center text-center space-y-4 pt-2 pb-2">
-            <div className="relative size-56 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-600 border border-white/10 border-b-4 border-pink-500 flex items-center justify-center">
+            <div className="relative size-56 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-700 via-purple-600 to-pink-600 border border-border/60 border-b-4 border-pink-500 flex items-center justify-center">
               <Heart className="size-20 fill-white text-white drop-shadow-lg" />
               <div className="absolute bottom-3 left-3 right-3 py-1.5 px-3 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 flex items-center gap-2">
                 <div className="w-1 h-3.5 rounded-full bg-pink-500" />
@@ -180,7 +180,7 @@ function RouteComponent() {
             </div>
 
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold font-heading text-white tracking-tight">
+              <h1 className="text-2xl font-bold font-heading text-foreground tracking-tight">
                 Liked Songs
               </h1>
               <p className="text-xs text-muted-foreground">
@@ -193,8 +193,8 @@ function RouteComponent() {
             <div className="flex items-center justify-end w-full max-w-sm pt-2 px-2 gap-3">
               <button
                 onClick={handleShuffle}
-                className={`p-2.5 rounded-full border border-white/10 transition-colors ${
-                  isShuffle ? "text-primary bg-primary/10 border-primary/20" : "text-muted-foreground hover:text-white bg-white/5"
+                className={`p-2.5 rounded-full border transition-colors ${
+                  isShuffle ? "text-primary bg-primary/10 border-primary/20" : "text-muted-foreground hover:text-foreground bg-muted border-border/60"
                 }`}
                 aria-label="Shuffle"
               >
@@ -203,7 +203,7 @@ function RouteComponent() {
               <button
                 onClick={handlePlayAll}
                 aria-label="Play All"
-                className="size-12 rounded-full bg-primary text-black flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
+                className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
               >
                 <Play size={20} className="fill-current ml-0.5" />
               </button>
@@ -211,17 +211,17 @@ function RouteComponent() {
           </div>
 
           {/* Desktop Header (Figma desktop_playlist.png) */}
-          <div className="hidden sm:flex flex-col gap-4 pb-4 border-b border-white/10">
+          <div className="hidden sm:flex flex-col gap-4 pb-4 border-b border-border/60">
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-pink-500/10 border border-pink-500/20 text-[11px] font-semibold text-pink-400 uppercase tracking-wider">
                 <Heart size={11} className="fill-pink-400 text-pink-400" />
                 Favorites Playlist
               </div>
-              <h1 className="text-3xl lg:text-5xl font-black font-heading text-white tracking-tight">
+              <h1 className="text-3xl lg:text-5xl font-black font-heading text-foreground tracking-tight">
                 Liked Songs
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-                By <span className="text-white font-semibold">You</span> &bull;{" "}
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                By <span className="text-foreground font-semibold">You</span> &bull;{" "}
                 {songs.length} {songs.length === 1 ? "song" : "songs"} &bull;{" "}
                 {getFormattedDuration(totalDuration)}
               </p>
@@ -234,7 +234,7 @@ function RouteComponent() {
                   size="icon-lg"
                   onClick={handlePlayAll}
                   aria-label="Play All"
-                  className="size-12 sm:size-13 rounded-full bg-primary text-black hover:bg-primary/90 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
+                  className="size-12 sm:size-13 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
                 >
                   <Play size={22} className="fill-current ml-0.5" />
                 </Button>
@@ -245,7 +245,7 @@ function RouteComponent() {
                   onClick={handleShuffle}
                   aria-label="Shuffle"
                   className={`rounded-full size-10 ${
-                    isShuffle ? "text-primary bg-primary/10" : "text-neutral-400 hover:text-white"
+                    isShuffle ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   <Shuffle size={20} />

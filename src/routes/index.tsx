@@ -63,7 +63,7 @@ function Index() {
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 ${
                 selectedFilter === "all"
                   ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                  : "bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-white/5"
+                  : "bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground border border-border"
               }`}
             >
               All
@@ -73,21 +73,21 @@ function Index() {
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 ${
                 selectedFilter === "music"
                   ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                  : "bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-white/5"
+                  : "bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground border border-border"
               }`}
             >
               Music
             </button>
             <Link
               to="/favorites"
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-white/5 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground border border-border flex items-center gap-1.5"
             >
               <Heart size={13} className="text-primary" />
               <span>Favorites</span>
             </Link>
             <Link
               to="/stream"
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-white/5 flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground border border-border flex items-center gap-1.5"
             >
               <Radio size={13} className="text-primary" />
               <span>Stream</span>
@@ -96,7 +96,7 @@ function Index() {
 
           <div className="shrink-0 flex items-center">
             <button
-              className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white border border-white/5 transition-colors"
+              className="p-2 rounded-full bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground border border-border transition-colors"
               aria-label="Filter Options"
             >
               <SlidersHorizontal size={14} />
@@ -123,17 +123,17 @@ function Index() {
         {data.recently_played_songs.length > 0 && selectedFilter !== "stream" && (
           <section className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-bold font-heading text-white">
+              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground">
                 Made For You
               </h2>
-              <div className="flex items-center gap-1.5 text-neutral-400">
-                <button className="hidden sm:flex p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Previous">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <button className="hidden sm:flex p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Previous">
                   <ChevronLeft size={18} />
                 </button>
-                <button className="hidden sm:flex p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Next">
+                <button className="hidden sm:flex p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Next">
                   <ChevronRight size={18} />
                 </button>
-                <button className="p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="More options">
+                <button className="p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="More options">
                   <MoreHorizontal size={18} />
                 </button>
               </div>
@@ -175,17 +175,17 @@ function Index() {
         {data.most_played_songs.length > 0 && (
           <section className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-bold font-heading text-white">
+              <h2 className="text-lg sm:text-xl font-bold font-heading text-foreground">
                 Your top mixes
               </h2>
-              <div className="flex items-center gap-1.5 text-neutral-400">
-                <button className="hidden sm:flex p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Previous">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <button className="hidden sm:flex p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Previous">
                   <ChevronLeft size={18} />
                 </button>
-                <button className="hidden sm:flex p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Next">
+                <button className="hidden sm:flex p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Next">
                   <ChevronRight size={18} />
                 </button>
-                <button className="p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="More options">
+                <button className="p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="More options">
                   <MoreHorizontal size={18} />
                 </button>
               </div>
@@ -231,7 +231,7 @@ function Index() {
         {data.recently_added_songs.length > 0 && (
           <section className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 font-heading text-white">
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2 font-heading text-foreground">
                 <Sparkle size={18} className="text-primary fill-primary" />
                 Recently Added
               </h2>
@@ -242,11 +242,11 @@ function Index() {
                 >
                   View all
                 </Link>
-                <div className="hidden sm:flex items-center gap-1 text-neutral-400">
-                  <button className="p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Previous">
+                <div className="hidden sm:flex items-center gap-1 text-muted-foreground">
+                  <button className="p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Previous">
                     <ChevronLeft size={18} />
                   </button>
-                  <button className="p-1 rounded-full hover:bg-white/10 hover:text-white transition-colors" aria-label="Next">
+                  <button className="p-1 rounded-full hover:bg-muted hover:text-foreground transition-colors" aria-label="Next">
                     <ChevronRight size={18} />
                   </button>
                 </div>
@@ -285,25 +285,25 @@ function Index() {
         <section className="pt-2 pb-6">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
             <Link to="/songs" className="shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 <Music size={14} className="text-primary" />
                 <span>{data.stats.total_songs} Songs</span>
               </div>
             </Link>
             <Link to="/artists" className="shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 <User size={14} className="text-primary" />
                 <span>{data.stats.total_artists} Artists</span>
               </div>
             </Link>
             <Link to="/albums" className="shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 <Album size={14} className="text-primary" />
                 <span>{data.stats.total_albums} Albums</span>
               </div>
             </Link>
             <Link to="/favorites" className="shrink-0">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary hover:bg-secondary/80 border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                 <Heart size={14} className="text-primary" />
                 <span>{data.stats.total_favorites} Favorites</span>
               </div>

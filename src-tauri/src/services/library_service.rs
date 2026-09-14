@@ -47,6 +47,85 @@ pub fn add_folder(conn: &mut rusqlite::Connection, path: &str) -> rusqlite::Resu
     Ok(format!("Added {} songs, Failed {} songs", added, failed))
 }
 
+// insert user selected audio files into the database
+pub fn add_files(conn: &mut rusqlite::Connection, paths: Vec<String>) -> rusqlite::Result<String> {
+    let mut added = 0;
+    let mut failed = 0;
+
+    for path_str in paths {
+        let p = std::path::Path::new(&path_str);
+        if !p.exists() || !p.is_file() {
+            continue;
+        }
+
+        let folder_path = match p.parent() {
+            Some(parent) => parent.to_string_lossy().to_string(),
+            None => "Imported Audio".to_string(),
+        };
+
+        let (folder_id, _) =
+            crate::repositories::folder_repository::find_or_create(conn, &folder_path)?;
+
+        match crate::services::metadata_service::extract_metadata(&p.to_path_buf()) {
+            Ok(metadata) => {
+                if let Err(e) = process_metadata(conn, metadata, folder_id, None) {
+                    eprintln!("Process file failed: {}", e);
+                    failed += 1;
+                } else {
+                    added += 1;
+                }
+            }
+            Err(e) => {
+                eprintln!("Metadata failed for {}: {}", path_str, e);
+                failed += 1;
+            }
+        }
+    }
+
+    Ok(format!("Added {} songs, Failed {} songs", added, failed))
+}
+
+// Scan common device storage locations on Android
+pub fn scan_device_storage(conn: &mut rusqlite::Connection) -> rusqlite::Result<String> {
+    let candidates = [
+        "/storage/emulated/0/Music",
+        "/storage/emulated/0/Download",
+        "/storage/emulated/0/Audiobooks",
+        "/storage/emulated/0/Podcasts",
+        "/sdcard/Music",
+        "/sdcard/Download",
+    ];
+
+    let mut total_added = 0;
+    let mut scanned_count = 0;
+
+    for path in &candidates {
+        let p = std::path::Path::new(path);
+        if p.exists() && p.is_dir() {
+            scanned_count += 1;
+            let (folder_id, _) =
+                crate::repositories::folder_repository::find_or_create(conn, path)?;
+            let audio_files = scan_service::scan_for_audio_files(path);
+            for file in audio_files {
+                if let Ok(metadata) = crate::services::metadata_service::extract_metadata(&file) {
+                    if process_metadata(conn, metadata, folder_id, None).is_ok() {
+                        total_added += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    if scanned_count == 0 {
+        Ok("No default music directories found on device.".to_string())
+    } else {
+        Ok(format!(
+            "Scanned {} locations, added {} songs",
+            scanned_count, total_added
+        ))
+    }
+}
+
 // Re sync all the folders in the library and update their songs
 pub fn resync_library(conn: &mut rusqlite::Connection) -> rusqlite::Result<String> {
     let mut added = 0;

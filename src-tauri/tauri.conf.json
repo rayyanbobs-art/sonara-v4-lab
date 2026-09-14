@@ -23,7 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'; media-src 'self' asset: https://asset.localhost http://asset.localhost http://127.0.0.1:* http://localhost:* https://*.googlevideo.com blob:; img-src 'self' asset: https://asset.localhost http://asset.localhost http://127.0.0.1:* http://localhost:* https://*.ytimg.com https://*.mzstatic.com https://*.scdn.co https://*.spotifycdn.com data: blob:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:* http://localhost:* https://suggestqueries.google.com https://itunes.apple.com https://open.spotify.com;",
+      "csp": "default-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'; media-src 'self' asset: https://asset.localhost http://asset.localhost http://127.0.0.1:* http://localhost:* https://*.googlevideo.com blob:; img-src 'self' asset: https://asset.localhost http://asset.localhost http://127.0.0.1:* http://localhost:* https://*.ytimg.com https://*.mzstatic.com https://*.scdn.co https://*.spotifycdn.com https://github.com https://*.githubusercontent.com data: blob:; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:* http://localhost:* https://suggestqueries.google.com https://itunes.apple.com https://open.spotify.com https://api.github.com https://github.com https://*.githubusercontent.com;",
       "assetProtocol": {
         "enable": true,
         "scope": {

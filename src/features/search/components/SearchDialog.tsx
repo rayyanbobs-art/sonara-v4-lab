@@ -37,9 +37,9 @@ const SearchDialog = () => {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="flex justify-start items-center border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white gap-2 flex-1 min-w-0 max-w-sm h-9 px-4 rounded-full overflow-hidden transition-colors"
+          className="flex justify-start items-center border border-border bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground gap-2 flex-1 min-w-0 max-w-sm h-9 px-4 rounded-full overflow-hidden transition-colors"
         >
-          <Search size={15} className="shrink-0 text-neutral-400" />
+          <Search size={15} className="shrink-0 text-muted-foreground" />
           <span className="text-xs font-heading truncate">
             Search library or stream...
           </span>

@@ -634,7 +634,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
 
   return (
     <>
-      <footer className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:bottom-2 left-2 right-2 rounded-2xl md:rounded-3xl p-2 md:p-4 shadow-2xl border border-white/10 bg-card/95 md:bg-muted/50 dark:bg-sidebar/95 md:dark:bg-sidebar/50 backdrop-blur-2xl z-30 transition-all">
+      <footer className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:bottom-2 left-2 right-2 rounded-2xl md:rounded-3xl p-2 md:p-4 shadow-2xl border border-border/60 bg-card/95 md:bg-card/85 dark:bg-sidebar/95 md:dark:bg-sidebar/50 backdrop-blur-2xl z-30 transition-all">
         <audio
           ref={playerRef}
           onEnded={handleEnded}
@@ -697,7 +697,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               }}
               className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer select-none"
             >
-              <div className="size-12 rounded-xl bg-linear-to-br from-primary/30 to-primary/10 shrink-0 flex items-center justify-center overflow-hidden shadow-sm border border-white/10">
+              <div className="size-12 rounded-xl bg-linear-to-br from-primary/30 to-primary/10 shrink-0 flex items-center justify-center overflow-hidden shadow-sm border border-border/60">
                 {coverSrc ? (
                   <img
                     src={coverSrc}
@@ -775,7 +775,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             </div>
           </div>
           {/* Integrated 2px progress bar */}
-          <div className="w-full h-[2px] bg-white/10 rounded-full mt-1.5 overflow-hidden">
+          <div className="w-full h-[2px] bg-muted rounded-full mt-1.5 overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-[width] duration-300 ease-linear"
               style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : "0%" }}
@@ -791,7 +791,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               variant={isShuffle ? "default" : "ghost"}
               size="icon"
               className={`rounded-full size-9 transition-colors ${
-                isShuffle ? "text-primary" : "text-neutral-400 hover:text-white"
+                isShuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setIsShuffle(!isShuffle)}
               aria-label="Shuffle"
@@ -801,7 +801,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full size-9 text-neutral-300 hover:text-white active:scale-90 transition-transform"
+              className="rounded-full size-9 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
               onClick={handlePrevious}
               aria-label="Previous Song"
             >
@@ -840,7 +840,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full size-9 text-neutral-300 hover:text-white active:scale-90 transition-transform"
+              className="rounded-full size-9 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
               onClick={handleNext}
               aria-label="Next Song"
             >
@@ -850,7 +850,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               variant={repeatMode !== "off" ? "default" : "ghost"}
               size="icon"
               className={`rounded-full size-9 transition-colors ${
-                repeatMode !== "off" ? "text-primary" : "text-neutral-400 hover:text-white"
+                repeatMode !== "off" ? "text-primary" : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={toggleRepeatMode}
               aria-label="Repeat Mode"
@@ -880,16 +880,16 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             </span>
 
             {/* Inline Volume Controls */}
-            <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/10">
+            <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-border/60">
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full size-8 text-neutral-400 hover:text-white"
+                className="rounded-full size-8 text-muted-foreground hover:text-foreground"
                 onClick={handleMuteToggle}
                 aria-label={muted ? "Unmute" : "Mute"}
               >
                 {muted || volume === 0 ? (
-                  <VolumeOff className="size-4 text-red-400" />
+                  <VolumeOff className="size-4 text-destructive" />
                 ) : (
                   <Volume2 className="size-4" />
                 )}
@@ -902,15 +902,15 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
                   if (muted) setMuted(false);
                   setVolume(val[0]);
                 }}
-                className="w-16 lg:w-20 cursor-pointer"
+                className="w-20 lg:w-24 cursor-pointer"
               />
             </div>
           </div>
 
-          {/* Zone 3: Right - Now Playing Track Info & Quick Actions */}
-          <div className="flex items-center justify-end gap-3 shrink-0 min-w-0">
+          {/* Zone 3: Right - Current Track Details & Quick Actions */}
+          <div className="flex items-center gap-2.5 lg:gap-3 shrink-0 max-w-[280px] lg:max-w-[340px]">
             <div
-              className="size-12 rounded-lg bg-linear-to-br from-primary/30 to-primary/10 shrink-0 flex items-center justify-center overflow-hidden border border-white/10 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+              className="size-11 rounded-xl bg-linear-to-br from-primary/30 to-primary/10 shrink-0 flex items-center justify-center overflow-hidden shadow-sm border border-border/60 cursor-pointer"
               onClick={() => setIsExpanded(true)}
             >
               {coverSrc ? (
@@ -930,9 +930,9 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             >
               <MarqueeText
                 text={currentSong.title}
-                className="text-sm font-semibold font-heading text-white truncate"
+                className="text-sm font-semibold font-heading text-foreground truncate"
               />
-              <p className="text-xs text-neutral-400 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {currentSong.artist_name || "Unknown Artist"}
                 {currentSong.album_name ? ` • ${currentSong.album_name}` : ""}
               </p>
@@ -942,7 +942,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full size-8 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                className="rounded-full size-8 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                 onClick={handleFavoriteToggle}
                 aria-label="Toggle Favorite"
               >
@@ -959,7 +959,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full size-8 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                    className="rounded-full size-8 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                     aria-label="Add to Playlist"
                   >
                     <SquarePlus className="size-4.5" />
@@ -972,7 +972,7 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-full size-8 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                className="rounded-full size-8 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                 onClick={() => setIsExpanded(true)}
                 aria-label="Open Now Playing"
               >

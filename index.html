@@ -1,21 +1,44 @@
 <!doctype html>
-<html lang="en" class="dark" style="background-color: #09090b; color-scheme: dark;">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/music-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Sonara</title>
+    <script>
+      (function() {
+        try {
+          var storedTheme = localStorage.getItem('vite-ui-theme') || 'dark';
+          var isDark = storedTheme === 'dark' || (storedTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.style.colorScheme = 'light';
+          }
+          var storedColor = localStorage.getItem('vite-ui-color') || 'yellow';
+          document.documentElement.setAttribute('data-theme', storedColor);
+        } catch (e) {}
+      })();
+    </script>
     <style>
-      :root, html, body {
-        background-color: #09090b !important;
-        color: #fafafa;
+      html, body {
         margin: 0;
         padding: 0;
         overflow: hidden;
       }
+      html.dark, html.dark body {
+        background-color: #09090b;
+        color: #fafafa;
+      }
+      html.light, html.light body {
+        background-color: #fafafa;
+        color: #09090b;
+      }
     </style>
   </head>
-  <body class="bg-background text-foreground" style="background-color: #09090b;">
+  <body class="bg-background text-foreground">
     <div id="root" class="w-full h-screen bg-background overflow-hidden"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

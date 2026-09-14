@@ -177,11 +177,11 @@ const OverlayPlayer = ({
               {/* Song Information & Actions */}
               <div className="flex-1 min-w-0 space-y-4 pt-1">
                 <div className="space-y-2">
-                  <h1 className="text-2xl lg:text-3xl xl:text-4xl font-black font-heading tracking-tight text-white leading-tight">
+                  <h1 className="text-2xl lg:text-3xl xl:text-4xl font-black font-heading tracking-tight text-foreground leading-tight">
                     {song.title}
                   </h1>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-400 font-medium">
-                    <div className="flex items-center gap-1.5 text-white">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground font-medium">
+                    <div className="flex items-center gap-1.5 text-foreground">
                       <User className="size-3.5 text-primary" />
                       <span>{song.artist_name || "Unknown Artist"}</span>
                     </div>
@@ -189,7 +189,7 @@ const OverlayPlayer = ({
                       <>
                         <span>•</span>
                         <div className="flex items-center gap-1.5">
-                          <Disc3 className="size-3.5 text-neutral-400" />
+                          <Disc3 className="size-3.5 text-muted-foreground" />
                           <span>{song.album_name}</span>
                         </div>
                       </>
@@ -203,7 +203,7 @@ const OverlayPlayer = ({
                 <div className="flex items-center gap-3 pt-1">
                   <Button
                     size="icon-lg"
-                    className="rounded-full size-12 bg-primary text-black hover:bg-primary/90 shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all"
+                    className="rounded-full size-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 hover:scale-105 active:scale-95 transition-all"
                     onClick={isPlaying ? onPause : onPlay}
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
@@ -213,7 +213,7 @@ const OverlayPlayer = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full size-10 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                    className="rounded-full size-10 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                     onClick={toggleFavorite}
                     aria-label="Toggle Favorite"
                   >
@@ -230,7 +230,7 @@ const OverlayPlayer = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="rounded-full size-10 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                        className="rounded-full size-10 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                         aria-label="Add to Playlist"
                       >
                         <SquarePlus className="size-5" />
@@ -242,7 +242,7 @@ const OverlayPlayer = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-full size-10 text-neutral-400 hover:text-white active:scale-90 transition-transform"
+                      className="rounded-full size-10 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
                       disabled={downloadMutation.isPending || downloadMutation.isSuccess}
                       onClick={() => downloadMutation.mutate({ song })}
                       aria-label="Download Track"
@@ -267,7 +267,7 @@ const OverlayPlayer = ({
                   {["Electronic", "Pop", "Streaming", "Favorites"].map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/5 border border-white/10 text-neutral-300 hover:bg-white/10 cursor-pointer transition-colors"
+                      className="px-3 py-1 rounded-full text-[11px] font-semibold bg-muted border border-border text-foreground hover:bg-muted/80 cursor-pointer transition-colors"
                     >
                       {tag}
                     </span>
@@ -275,15 +275,15 @@ const OverlayPlayer = ({
                 </div>
 
                 {/* Artist Credits Card */}
-                <div className="flex items-center gap-3 pt-3 border-t border-white/10 max-w-md">
+                <div className="flex items-center gap-3 pt-3 border-t border-border/60 max-w-md">
                   <div className="size-10 rounded-full bg-linear-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
                     <User className="size-4.5" />
                   </div>
                   <div className="min-w-0 space-y-0.5">
-                    <p className="text-sm font-bold text-white truncate">
+                    <p className="text-sm font-bold text-foreground truncate">
                       {song.artist_name || "Unknown Artist"}
                     </p>
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-muted-foreground">
                       Main artist &bull; Composer
                     </p>
                   </div>
@@ -292,13 +292,13 @@ const OverlayPlayer = ({
             </div>
 
             {/* Lower Section: Tabs & Synced Lyrics */}
-            <div className="space-y-4 pt-4 border-t border-white/10">
+            <div className="space-y-4 pt-4 border-t border-border/60">
               {/* Tabs matching Figma */}
-              <div className="flex items-center gap-6 border-b border-white/10 pb-2">
+              <div className="flex items-center gap-6 border-b border-border/60 pb-2">
                 <button
                   onClick={() => setDesktopTab("lyrics")}
                   className={`text-sm font-bold pb-2 transition-colors relative ${
-                    desktopTab === "lyrics" ? "text-white" : "text-neutral-400 hover:text-white"
+                    desktopTab === "lyrics" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Lyrics
@@ -309,7 +309,7 @@ const OverlayPlayer = ({
                 <button
                   onClick={() => setDesktopTab("credits")}
                   className={`text-sm font-bold pb-2 transition-colors relative ${
-                    desktopTab === "credits" ? "text-white" : "text-neutral-400 hover:text-white"
+                    desktopTab === "credits" ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Credits
@@ -325,14 +325,14 @@ const OverlayPlayer = ({
                   <LyricsSection song={song} position={position} />
                 </div>
               ) : (
-                <div className="p-6 rounded-2xl bg-white/5 border border-white/10 max-w-xl space-y-3">
-                  <h3 className="text-base font-bold text-white">Track Credits</h3>
-                  <div className="space-y-2 text-xs text-neutral-300">
-                    <p><span className="text-neutral-500 font-semibold">Title:</span> {song.title}</p>
-                    <p><span className="text-neutral-500 font-semibold">Artist:</span> {song.artist_name || "Unknown"}</p>
-                    <p><span className="text-neutral-500 font-semibold">Album:</span> {song.album_name || "Unknown"}</p>
-                    <p><span className="text-neutral-500 font-semibold">Duration:</span> {getFormattedDuration(duration)}</p>
-                    <p><span className="text-neutral-500 font-semibold">Source:</span> {isOnline ? "Online Stream" : "Local Audio"}</p>
+                <div className="p-6 rounded-2xl bg-card border border-border max-w-xl space-y-3">
+                  <h3 className="text-base font-bold text-foreground">Track Credits</h3>
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    <p><span className="text-foreground font-semibold">Title:</span> {song.title}</p>
+                    <p><span className="text-foreground font-semibold">Artist:</span> {song.artist_name || "Unknown"}</p>
+                    <p><span className="text-foreground font-semibold">Album:</span> {song.album_name || "Unknown"}</p>
+                    <p><span className="text-foreground font-semibold">Duration:</span> {getFormattedDuration(duration)}</p>
+                    <p><span className="text-foreground font-semibold">Source:</span> {isOnline ? "Online Stream" : "Local Audio"}</p>
                   </div>
                 </div>
               )}

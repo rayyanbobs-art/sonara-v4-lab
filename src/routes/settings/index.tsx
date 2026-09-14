@@ -57,7 +57,7 @@ function RouteComponent() {
             size="icon"
             onClick={() => window.history.back()}
             aria-label="Go Back"
-            className="size-9 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+            className="size-9 rounded-full bg-muted/50 border border-border hover:bg-muted text-foreground"
           >
             <ChevronLeft size={18} />
           </Button>
@@ -67,7 +67,7 @@ function RouteComponent() {
         </div>
 
         {/* User Profile Hero Card (Figma Mobile & Desktop Matched) */}
-        <div className="relative rounded-2xl overflow-hidden p-6 sm:p-8 bg-gradient-to-b from-primary/15 via-white/5 to-transparent border border-white/10 shadow-2xl">
+        <div className="relative rounded-2xl overflow-hidden p-6 sm:p-8 bg-gradient-to-b from-primary/15 via-card to-background border border-border shadow-xl">
           <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
             <div className="size-20 sm:size-24 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border-2 border-primary/40 shadow-xl flex items-center justify-center text-primary shrink-0">
               <User className="size-10 sm:size-12" />
@@ -78,28 +78,28 @@ function RouteComponent() {
                 <span className="size-1.5 rounded-full bg-primary animate-pulse" />
                 Active Library
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black font-heading text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black font-heading text-foreground tracking-tight">
                 Sonara Listener
               </h1>
-              <p className="text-xs sm:text-sm text-neutral-400">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Personalized offline & stream audio workspace
               </p>
 
               {/* Quick Stat Badges */}
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-neutral-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted/50 border border-border text-foreground">
                   <Music size={12} className="text-primary" />
                   {data?.total_songs ?? 0} Songs
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-neutral-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted/50 border border-border text-foreground">
                   <Disc3 size={12} className="text-primary" />
                   {data?.total_albums ?? 0} Albums
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-neutral-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted/50 border border-border text-foreground">
                   <User size={12} className="text-primary" />
                   {data?.total_artists ?? 0} Artists
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 border border-white/10 text-neutral-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted/50 border border-border text-foreground">
                   <Folder size={12} className="text-primary" />
                   {data?.total_folders ?? 0} Folders
                 </span>
@@ -111,7 +111,7 @@ function RouteComponent() {
         {/* Settings Sections */}
         <div className="space-y-6">
           {/* Appearance Card */}
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xs rounded-2xl shadow-xl">
+          <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Sparkles size={18} className="text-primary" />
@@ -124,7 +124,7 @@ function RouteComponent() {
             <CardContent className="space-y-5">
               {/* Theme Selection */}
               <div>
-                <Label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-3">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
                   Theme Mode
                 </Label>
                 <div className="flex items-center gap-4">
@@ -133,8 +133,8 @@ function RouteComponent() {
                       key={option}
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-medium cursor-pointer transition-all ${
                         theme === option
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-white/10 bg-white/5 text-neutral-300 hover:border-white/20"
+                          ? "border-primary bg-primary/10 text-primary font-semibold"
+                          : "border-border bg-muted/40 text-muted-foreground hover:border-foreground/20 hover:text-foreground"
                       }`}
                     >
                       <input
@@ -151,11 +151,11 @@ function RouteComponent() {
                 </div>
               </div>
 
-              <Separator className="bg-white/10" />
+              <Separator className="bg-border" />
 
               {/* Accent Color Swatches */}
               <div>
-                <Label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-3">
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
                   Accent Color
                 </Label>
                 <div className="flex items-center gap-3">
@@ -166,7 +166,7 @@ function RouteComponent() {
                       aria-label={`Select ${c.name} accent`}
                       className={`size-8 rounded-full transition-transform hover:scale-110 active:scale-95 cursor-pointer ${
                         color === c.name
-                          ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-105"
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-105"
                           : "opacity-80 hover:opacity-100"
                       }`}
                       onClick={() => setColor(c.name)}
@@ -178,7 +178,7 @@ function RouteComponent() {
           </Card>
 
           {/* Playback Behavior */}
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xs rounded-2xl shadow-xl">
+          <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Settings size={18} className="text-primary" />
@@ -191,7 +191,7 @@ function RouteComponent() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between w-full">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium text-white">
+                  <Label className="text-sm font-medium text-foreground">
                     Default Shuffle
                   </Label>
                   <p className="text-xs text-muted-foreground">
@@ -206,11 +206,11 @@ function RouteComponent() {
                 />
               </div>
 
-              <Separator className="bg-white/10" />
+              <Separator className="bg-border" />
 
               <div className="flex items-center justify-between w-full">
                 <div className="space-y-0.5">
-                  <Label className="text-sm font-medium text-white">
+                  <Label className="text-sm font-medium text-foreground">
                     Default Repeat Mode
                   </Label>
                   <p className="text-xs text-muted-foreground">
@@ -218,7 +218,7 @@ function RouteComponent() {
                   </p>
                 </div>
                 <select
-                  className="bg-neutral-900 border border-white/10 rounded-xl px-3 h-9 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                  className="bg-muted border border-border rounded-xl px-3 h-9 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                   value={repeatModeConfig}
                   onChange={(e) =>
                     setRepeatModeConfig(e.target.value as "off" | "one" | "all")
@@ -236,7 +236,7 @@ function RouteComponent() {
           <LibraryManagement />
 
           {/* About Sonara Card */}
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xs rounded-2xl shadow-xl">
+          <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
             <CardHeader>
               <CardTitle className="text-base font-bold">About Sonara</CardTitle>
               <CardDescription className="text-xs">
@@ -248,24 +248,24 @@ function RouteComponent() {
                 <img
                   src="/128x128@2x.png"
                   alt="Sonara"
-                  className="size-14 rounded-2xl border border-white/10 shadow-lg"
+                  className="size-14 rounded-2xl border border-border shadow-lg"
                 />
                 <div className="space-y-1">
-                  <h3 className="font-bold text-base text-white">Sonara Stream</h3>
+                  <h3 className="font-bold text-base text-foreground">Sonara Stream</h3>
                   <p className="text-xs text-muted-foreground">
                     High-performance local & stream music player built with Tauri, Rust, and React.
                   </p>
-                  <p className="text-[11px] font-mono text-primary">
-                    v{data?.app_version || "1.0.0"}
+                  <p className="text-[11px] font-mono text-primary font-semibold">
+                    v{data?.app_version || "0.6.7"}
                   </p>
                 </div>
               </div>
 
-              <Separator className="bg-white/10" />
+              <Separator className="bg-border" />
 
               <div className="flex flex-wrap items-center gap-3">
                 <Button
-                  className="text-xs rounded-full bg-primary text-black hover:bg-primary/90 font-bold px-5 h-9"
+                  className="text-xs rounded-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold px-5 h-9"
                   onClick={() => checkForAppUpdates({ showNoUpdate: true })}
                 >
                   <RefreshCw size={13} className="mr-1.5" />
@@ -273,7 +273,7 @@ function RouteComponent() {
                 </Button>
                 <Button
                   variant="outline"
-                  className="text-xs rounded-full border-white/20 text-white hover:bg-white/10 px-5 h-9"
+                  className="text-xs rounded-full border-border text-foreground hover:bg-muted px-5 h-9"
                   onClick={handleViewOnGitHub}
                 >
                   <ExternalLink size={13} className="mr-1.5" />
@@ -281,7 +281,7 @@ function RouteComponent() {
                 </Button>
               </div>
 
-              <Separator className="bg-white/10" />
+              <Separator className="bg-border" />
               <p className="text-xs text-neutral-500 text-center">
                 &copy; 2026 Sonara &bull; Crafted with Rust, Tauri, and React
               </p>
