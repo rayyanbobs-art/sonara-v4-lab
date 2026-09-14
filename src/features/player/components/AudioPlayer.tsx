@@ -12,18 +12,25 @@ import {
   SquarePlus,
   Volume2,
   VolumeOff,
+  Sliders,
+  Moon,
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import WavySeekBar from "./WavySeekBar";
+import useArtworkPalette from "../hooks/useArtworkPalette";
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
-import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
 import useToggleFavoriteMutation from "@/features/songs/api/useToggleFavoriteMutation";
 import PlaybackQueue from "@/features/queue/components/PlaybackQueue";
 import OverlayPlayer from "@/features/player/components/OverlayPlayer";
 import AddToPlaylistDialog from "@/features/playlists/components/AddToPlaylistDialog";
+import webAudioEngine from "@/features/audio/services/webAudioEngine";
+import useAudioEffectsStore from "@/features/audio/store/useAudioEffectsStore";
+import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
+import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
 import useMediaSession from "@/hooks/useMediaSession";
 import MarqueeText from "@/components/custom/MarqueText";
 import { isOnlineSong, getOnlineVideoId } from "@/lib/onlineTrack";
@@ -120,6 +127,37 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
     setIsExpanded(false);
   };
 
+  // Initialize WebAudio DSP chain (15-band EQ + peak limiter + crossfeed) on desktop
+  useEffect(() => {
+    if (playerRef.current && !isAndroidPlatform()) {
+      webAudioEngine.init(playerRef.current);
+    }
+  }, []);
+
+  // Sleep Timer watcher
+  const sleepTimerEndsAt = useAudioEffectsStore((state) => state.sleepTimerEndsAt);
+  const sleepTimerType = useAudioEffectsStore((state) => state.sleepTimerType);
+  const cancelSleepTimer = useAudioEffectsStore((state) => state.cancelSleepTimer);
+
+  useEffect(() => {
+    if (!sleepTimerEndsAt) return;
+    const checkTimer = () => {
+      const now = Date.now();
+      if (now >= sleepTimerEndsAt) {
+        if (playerRef.current) {
+          webAudioEngine.fadeOutAndPause(playerRef.current, 1500);
+        } else if (isAndroidPlatform()) {
+          androidPause();
+        }
+        setIsPlaying(false);
+        cancelSleepTimer();
+        toast.info("Sleep timer ended. Playback paused.");
+      }
+    };
+    const timer = setInterval(checkTimer, 1000);
+    return () => clearInterval(timer);
+  }, [sleepTimerEndsAt, cancelSleepTimer, setIsPlaying]);
+
   const handleStopAndDismiss = () => {
     if (isAndroidPlatform()) {
       androidStop();
@@ -198,6 +236,13 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
         completed: true,
         skipped_before_seconds: null,
       }).catch(() => {});
+    }
+
+    if (sleepTimerType === "end_of_track") {
+      cancelSleepTimer();
+      setIsPlaying(false);
+      toast.info("Playback ended (Sleep Timer).");
+      return;
     }
 
     if (repeatMode === "one") {
@@ -632,9 +677,18 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
       ? getOptimizedThumbnail(rawCoverSrc, "card")
       : rawCoverSrc;
 
+  const palette = useArtworkPalette(coverSrc);
+
   return (
     <>
-      <footer className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:bottom-2 left-2 right-2 rounded-2xl md:rounded-3xl p-2 md:p-4 shadow-2xl border border-border/60 bg-card/95 md:bg-card/85 dark:bg-sidebar/95 md:dark:bg-sidebar/50 backdrop-blur-2xl z-30 transition-all">
+      <footer
+        className="fixed bottom-[calc(3.75rem+env(safe-area-inset-bottom,0px))] md:bottom-2 left-2 right-2 rounded-2xl md:rounded-3xl p-2 md:p-4 shadow-2xl border border-border/60 bg-card/95 md:bg-card/85 dark:bg-sidebar/95 md:dark:bg-sidebar/50 backdrop-blur-2xl z-30 transition-all overflow-hidden"
+        style={{
+          boxShadow: palette.isLoaded
+            ? `0 12px 36px -8px ${palette.backdropTint}, 0 4px 12px rgba(0,0,0,0.1)`
+            : undefined,
+        }}
+      >
         <audio
           ref={playerRef}
           onEnded={handleEnded}
@@ -774,11 +828,14 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
               )}
             </div>
           </div>
-          {/* Integrated 2px progress bar */}
-          <div className="w-full h-[2px] bg-muted rounded-full mt-1.5 overflow-hidden">
+          {/* Integrated progress bar with dynamic album accent color */}
+          <div className="w-full h-[2.5px] bg-muted/80 rounded-full mt-1.5 overflow-hidden">
             <div
-              className="h-full bg-primary rounded-full transition-[width] duration-300 ease-linear"
-              style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : "0%" }}
+              className="h-full rounded-full transition-[width] duration-300 ease-linear"
+              style={{
+                width: duration > 0 ? `${(currentTime / duration) * 100}%` : "0%",
+                backgroundColor: palette.accent || "var(--primary)",
+              }}
             />
           </div>
         </section>
@@ -861,23 +918,18 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             </Button>
           </div>
 
-          {/* Zone 2: Center - Timeline Scrubber & Volume Slider */}
+          {/* Zone 2: Center - Dynamic Wavy Timeline Scrubber & Volume Slider */}
           <div className="flex-1 max-w-2xl flex items-center gap-3 min-w-0">
-            <span className="text-xs font-mono text-neutral-400 shrink-0 w-9 text-right select-none">
-              {getFormattedDuration(currentTime)}
-            </span>
-            <Slider
-              defaultValue={[0]}
-              max={duration || 1}
-              value={[currentTime]}
-              onValueChange={(value) => {
-                handleSeek(value[0]);
-              }}
-              className="flex-1 cursor-pointer"
+            <WavySeekBar
+              position={currentTime}
+              duration={duration}
+              isPlaying={isPlaying}
+              onSeek={handleSeek}
+              primaryColor={palette.accent}
+              accentColor={palette.dominant}
+              showTimeLabels={true}
+              className="flex-1"
             />
-            <span className="text-xs font-mono text-neutral-400 shrink-0 w-9 text-left select-none">
-              {getFormattedDuration(duration)}
-            </span>
 
             {/* Inline Volume Controls */}
             <div className="flex items-center gap-1.5 shrink-0 pl-2 border-l border-border/60">
@@ -963,6 +1015,32 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
                     aria-label="Add to Playlist"
                   >
                     <SquarePlus className="size-4.5" />
+                  </Button>
+                }
+              />
+
+              <EqualizerDialog
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full size-8 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                    aria-label="Equalizer"
+                  >
+                    <Sliders className="size-4.5" />
+                  </Button>
+                }
+              />
+
+              <SleepTimerDialog
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full size-8 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                    aria-label="Sleep Timer"
+                  >
+                    <Moon className="size-4.5" />
                   </Button>
                 }
               />

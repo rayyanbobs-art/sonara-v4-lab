@@ -20,8 +20,11 @@ import {
   Check,
   SquarePlus,
   User,
+  Sliders,
+  Moon,
 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
+import WavySeekBar from "./WavySeekBar";
+import useArtworkPalette from "../hooks/useArtworkPalette";
 import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
 import PlaybackQueue from "@/features/queue/components/PlaybackQueue";
@@ -29,6 +32,8 @@ import MarqueeText from "@/components/custom/MarqueText";
 import ActionsDropdown from "@/features/songs/components/ActionsDropdown";
 import AddToPlaylistDialog from "@/features/playlists/components/AddToPlaylistDialog";
 import LyricsSection from "@/features/lyrics/components/LyricsSection";
+import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
+import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
 import { getOptimizedThumbnail } from "@/utils/thumbnail";
 import useDownloadTrack from "@/features/online/hooks/useDownloadTrack";
 import { isOnlineSong } from "@/lib/onlineTrack";
@@ -88,6 +93,8 @@ const OverlayPlayer = ({
     ? getOptimizedThumbnail(rawCover, "full")
     : rawCover;
 
+  const palette = useArtworkPalette(coverSrc);
+
   return (
     <section className="fixed inset-0 z-50 pointer-events-none">
       <div
@@ -96,13 +103,14 @@ const OverlayPlayer = ({
         }`}
         onClick={collapse}
       >
-        {/* Safe ambient color glow (mobile) without GPU-crashing full-screen blur */}
+        {/* Safe ambient color glow (mobile & desktop) using dynamic album art palette */}
         <div
           aria-hidden="true"
-          className="md:hidden absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/35 via-background/80 to-background pointer-events-none"
+          className="absolute inset-0 opacity-55 transition-all duration-700 pointer-events-none"
+          style={{ background: palette.glowGradient }}
         />
         {/* Solid overlay */}
-        <div className="absolute inset-0 bg-background/90 md:bg-background/95 backdrop-blur-sm md:backdrop-blur-2xl" />
+        <div className="absolute inset-0 bg-background/85 md:bg-background/90 backdrop-blur-md md:backdrop-blur-2xl" />
       </div>
       <div
         className={`absolute inset-0 w-full h-full flex flex-col ${
@@ -149,6 +157,30 @@ const OverlayPlayer = ({
             <ActionsDropdown song={song}>
               <AddToPlaylistDialog song={song} />
             </ActionsDropdown>
+            <EqualizerDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full size-9 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                  aria-label="Equalizer"
+                >
+                  <Sliders className="size-4.5" />
+                </Button>
+              }
+            />
+            <SleepTimerDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full size-9 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
+                  aria-label="Sleep Timer"
+                >
+                  <Moon className="size-4.5" />
+                </Button>
+              }
+            />
             <div className="hidden md:block">
               <PlaybackQueue />
             </div>
@@ -322,7 +354,12 @@ const OverlayPlayer = ({
               {/* Tab Content */}
               {desktopTab === "lyrics" ? (
                 <div className="w-full min-h-[260px] flex flex-col justify-center">
-                  <LyricsSection song={song} position={position} />
+                  <LyricsSection
+                    song={song}
+                    position={position}
+                    onSeek={onSeek}
+                    accentColor={palette.accent}
+                  />
                 </div>
               ) : (
                 <div className="p-6 rounded-2xl bg-card border border-border max-w-xl space-y-3">
@@ -385,19 +422,17 @@ const OverlayPlayer = ({
                   </Button>
                 </div>
 
-                {/* Timeline Scrubber */}
-                <div className="space-y-1.5 pt-1 pb-2">
-                  <Slider
-                    defaultValue={[0]}
-                    max={duration || 100}
-                    value={[position]}
-                    onValueChange={(value) => onSeek(value[0])}
-                    className="w-full"
+                {/* Dynamic Wavy Timeline Scrubber (Material 3 Expressive) */}
+                <div className="pt-1 pb-2">
+                  <WavySeekBar
+                    position={position}
+                    duration={duration}
+                    isPlaying={isPlaying}
+                    onSeek={onSeek}
+                    primaryColor={palette.accent}
+                    accentColor={palette.dominant}
+                    showTimeLabels={true}
                   />
-                  <div className="flex items-center justify-between text-xs font-mono font-medium text-muted-foreground px-0.5">
-                    <span>{getFormattedDuration(position)}</span>
-                    <span>{getFormattedDuration(duration)}</span>
-                  </div>
                 </div>
 
                 {/* Transport Controls (5 buttons, 64px central play) */}
@@ -497,7 +532,12 @@ const OverlayPlayer = ({
               /* Mobile Lyrics View */
               <div className="flex-1 flex flex-col justify-between py-2 max-w-sm mx-auto w-full px-4 overflow-hidden">
                 <div className="flex-1 overflow-hidden py-2">
-                  <LyricsSection song={song} position={position} />
+                  <LyricsSection
+                    song={song}
+                    position={position}
+                    onSeek={onSeek}
+                    accentColor={palette.accent}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between px-2 pt-2 border-t border-white/5 shrink-0">
