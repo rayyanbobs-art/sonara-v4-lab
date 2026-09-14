@@ -31,6 +31,7 @@ import webAudioEngine from "@/features/audio/services/webAudioEngine";
 import useAudioEffectsStore from "@/features/audio/store/useAudioEffectsStore";
 import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
 import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
+import CastButton from "./CastButton";
 import { scrobbleTrack } from "@/features/scrobbler/services/scrobblerService";
 import useMediaSession from "@/hooks/useMediaSession";
 import MarqueeText from "@/components/custom/MarqueText";
@@ -1051,6 +1052,8 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
                   </Button>
                 }
               />
+
+              <CastButton audioElement={playerRef.current} />
 
               <PlaybackQueue />
 

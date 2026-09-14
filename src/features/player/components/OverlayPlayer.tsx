@@ -34,6 +34,7 @@ import AddToPlaylistDialog from "@/features/playlists/components/AddToPlaylistDi
 import LyricsSection from "@/features/lyrics/components/LyricsSection";
 import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
 import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
+import CastButton from "./CastButton";
 import { getOptimizedThumbnail } from "@/utils/thumbnail";
 import useDownloadTrack from "@/features/online/hooks/useDownloadTrack";
 import { isOnlineSong } from "@/lib/onlineTrack";
@@ -181,6 +182,7 @@ const OverlayPlayer = ({
                 </Button>
               }
             />
+            <CastButton />
             <div className="hidden md:block">
               <PlaybackQueue />
             </div>
