@@ -31,6 +31,7 @@ import webAudioEngine from "@/features/audio/services/webAudioEngine";
 import useAudioEffectsStore from "@/features/audio/store/useAudioEffectsStore";
 import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
 import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
+import { scrobbleTrack } from "@/features/scrobbler/services/scrobblerService";
 import useMediaSession from "@/hooks/useMediaSession";
 import MarqueeText from "@/components/custom/MarqueText";
 import { isOnlineSong, getOnlineVideoId } from "@/lib/onlineTrack";
@@ -356,6 +357,12 @@ const AudioPlayer = ({ currentSong }: AudioPlayerProps) => {
             skipped_before_seconds: null,
           }).catch((err) => console.warn("Failed to log play event:", err));
         }
+
+        scrobbleTrack(
+          currentSong.artist_name || "Unknown Artist",
+          currentSong.title,
+          currentSong.album_name
+        );
       }
     }
   };

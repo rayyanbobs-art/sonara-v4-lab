@@ -50,6 +50,10 @@ interface AudioEffectsState {
   crossfadeDuration: number; // 0 to 12 seconds (0 = off)
   setCrossfadeDuration: (seconds: number) => void;
 
+  // Audio Quality / Fidelity
+  audioQuality: "high" | "balanced" | "saver";
+  setAudioQuality: (quality: "high" | "balanced" | "saver") => void;
+
   // Sleep Timer
   sleepTimerType: SleepTimerDuration;
   sleepTimerEndsAt: number | null; // epoch ms
@@ -97,6 +101,9 @@ export const useAudioEffectsStore = create<AudioEffectsState>()(
       setCrossfadeDuration: (seconds) =>
         set({ crossfadeDuration: Math.max(0, Math.min(12, seconds)) }),
 
+      audioQuality: "high",
+      setAudioQuality: (quality) => set({ audioQuality: quality }),
+
       sleepTimerType: null,
       sleepTimerEndsAt: null,
 
@@ -128,6 +135,7 @@ export const useAudioEffectsStore = create<AudioEffectsState>()(
         binauralCrossfeed: state.binauralCrossfeed,
         peakProtection: state.peakProtection,
         crossfadeDuration: state.crossfadeDuration,
+        audioQuality: state.audioQuality,
       }),
     }
   )

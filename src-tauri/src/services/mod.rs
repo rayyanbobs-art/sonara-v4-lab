@@ -9,3 +9,4 @@ pub mod metadata_service;
 pub mod playlist_service;
 pub mod scan_service;
 pub mod song_service;
+pub mod audio_tagger;

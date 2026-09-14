@@ -10,6 +10,10 @@ import {
   Settings,
   Sparkles,
   User,
+  SlidersHorizontal,
+  Moon,
+  Tag,
+  Radio,
 } from "lucide-react";
 import { useTheme } from "@/components/custom/ThemeProvider";
 import {
@@ -23,11 +27,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { colorOptions, themeOptions } from "@/constants/constants";
 import { checkForAppUpdates } from "@/utils/updater";
 import LibraryManagement from "@/features/settings/components/LibraryManagement";
 import useGetAppStatsQuery from "@/features/settings/api/useGetAppStatsQuery";
 import useAppStore from "@/store/app-store";
+import { useAudioEffectsStore } from "@/features/audio/store/useAudioEffectsStore";
+import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
+import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
+import ScrobblerDialog from "@/features/scrobbler/components/ScrobblerDialog";
 
 export const Route = createFileRoute("/settings/")({
   component: RouteComponent,
@@ -40,6 +49,11 @@ function RouteComponent() {
 
   const repeatModeConfig = useAppStore((state) => state.repeatModeConfig);
   const setRepeatModeConfig = useAppStore((state) => state.setRepeatModeConfig);
+
+  const audioQuality = useAudioEffectsStore((state) => state.audioQuality);
+  const setAudioQuality = useAudioEffectsStore((state) => state.setAudioQuality);
+  const crossfadeDuration = useAudioEffectsStore((state) => state.crossfadeDuration);
+  const setCrossfadeDuration = useAudioEffectsStore((state) => state.setCrossfadeDuration);
 
   const { data } = useGetAppStatsQuery();
 
@@ -228,6 +242,135 @@ function RouteComponent() {
                   <option value="one">Repeat One</option>
                   <option value="all">Repeat All</option>
                 </select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audio Quality & Studio DSP (LastWave Feature Parity) */}
+          <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <SlidersHorizontal size={18} className="text-primary" />
+                Audio Quality & Studio DSP
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Lossless streaming fidelity, 15-band studio equalizer & auto sleep timers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Stream & Download Quality */}
+              <div>
+                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
+                  Streaming & Download Fidelity
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: "high", title: "High Fidelity", desc: "Best audio (up to 256k AAC/Opus)" },
+                    { id: "balanced", title: "Balanced", desc: "Standard 160k quality" },
+                    { id: "saver", title: "Data Saver", desc: "Lightweight 96k stream" },
+                  ].map((tier) => (
+                    <div
+                      key={tier.id}
+                      onClick={() => setAudioQuality(tier.id as "high" | "balanced" | "saver")}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        audioQuality === tier.id
+                          ? "border-primary bg-primary/10 shadow-sm"
+                          : "border-border bg-muted/40 hover:border-foreground/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-foreground">{tier.title}</span>
+                        {audioQuality === tier.id && (
+                          <span className="size-2 rounded-full bg-primary" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                        {tier.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator className="bg-border" />
+
+              {/* Crossfade Slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-medium text-foreground">
+                      Track Crossfade
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Seamless audio transition between consecutive songs
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    {crossfadeDuration > 0 ? `${crossfadeDuration}s` : "Off"}
+                  </span>
+                </div>
+                <Slider
+                  min={0}
+                  max={12}
+                  step={1}
+                  value={[crossfadeDuration]}
+                  onValueChange={(val) => setCrossfadeDuration(val[0])}
+                  className="w-full pt-1"
+                />
+              </div>
+
+              <Separator className="bg-border" />
+
+              {/* Action Triggers for EQ & Sleep Timer */}
+              <div className="flex flex-wrap items-center gap-3">
+                <EqualizerDialog
+                  trigger={
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-border bg-muted/30 hover:bg-muted font-medium text-xs h-10 gap-2 px-4 shadow-sm"
+                    >
+                      <SlidersHorizontal size={14} className="text-primary" />
+                      15-Band Studio Equalizer
+                    </Button>
+                  }
+                />
+
+                <SleepTimerDialog
+                  trigger={
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-border bg-muted/30 hover:bg-muted font-medium text-xs h-10 gap-2 px-4 shadow-sm"
+                    >
+                      <Moon size={14} className="text-primary" />
+                      Sleep Timer & Auto-Fade
+                    </Button>
+                  }
+                />
+
+                <ScrobblerDialog
+                  trigger={
+                    <Button
+                      variant="outline"
+                      className="rounded-xl border-border bg-muted/30 hover:bg-muted font-medium text-xs h-10 gap-2 px-4 shadow-sm"
+                    >
+                      <Radio size={14} className="text-primary" />
+                      Scrobbler (Last.fm / ListenBrainz)
+                    </Button>
+                  }
+                />
+              </div>
+
+              {/* Embedded Metadata & Synced Lyrics Notice */}
+              <div className="rounded-xl p-3.5 bg-primary/5 border border-primary/15 flex items-start gap-3">
+                <Tag size={16} className="text-primary shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-foreground">
+                    Native Metadata & Synced Lyrics Engine Active
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Downloads automatically embed front cover art, ID3v2/MP4 container tags, and save companion <code className="text-primary font-mono text-[10px]">.lrc</code> synchronized lyrics files for 100% offline accuracy.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

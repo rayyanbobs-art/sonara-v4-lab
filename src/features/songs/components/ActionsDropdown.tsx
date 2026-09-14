@@ -6,9 +6,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@tanstack/react-router";
-import { Ellipsis } from "lucide-react";
+import { Ellipsis, Radio } from "lucide-react";
 import useAppStore from "@/store/app-store";
 import EditSongInfoDialog from "@/features/songs/components/EditSongInfoDialog";
+import useSmartMix from "@/features/recommend/hooks/useSmartMix";
 
 type ActionsDropdownProps = {
   song: Song;
@@ -18,6 +19,7 @@ type ActionsDropdownProps = {
 
 const ActionsDropdown = ({ song, children, className }: ActionsDropdownProps) => {
   const addToQueue = useAppStore((state) => state.addToQueue);
+  const { startSmartMix } = useSmartMix();
 
   return (
     <DropdownMenu>
@@ -41,6 +43,16 @@ const ActionsDropdown = ({ song, children, className }: ActionsDropdownProps) =>
           album_artist={song.album_artist_name}
           track_number={song.track_number}
         />
+        <DropdownMenuItem
+          className="text-xs gap-2 font-medium cursor-pointer text-primary"
+          onClick={(e) => {
+            e.stopPropagation();
+            startSmartMix(song);
+          }}
+        >
+          <Radio size={14} className="text-primary" />
+          Start Smart Mix
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="text-xs"
           onClick={(e) => {

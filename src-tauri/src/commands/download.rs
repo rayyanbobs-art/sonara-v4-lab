@@ -29,6 +29,46 @@ pub fn sanitize_filename(name: &str, max_len: usize) -> String {
     }
 }
 
+pub fn clean_title_for_lyrics(title: &str) -> String {
+    let mut out = String::new();
+    let mut depth = 0;
+    for c in title.chars() {
+        if c == '(' || c == '[' {
+            depth += 1;
+        } else if c == ')' || c == ']' {
+            if depth > 0 { depth -= 1; }
+        } else if depth == 0 {
+            out.push(c);
+        }
+    }
+    let noise_patterns = [
+        "official video",
+        "music video",
+        "official audio",
+        "lyric video",
+        "lyrics",
+        "remastered",
+        "remaster",
+        "audio",
+        "hd",
+        "4k",
+    ];
+
+    let mut result = out;
+    for noise in &noise_patterns {
+        while let Some(idx) = result.to_lowercase().find(noise) {
+            result.replace_range(idx..idx + noise.len(), "");
+        }
+    }
+
+    let trimmed = result.trim().trim_matches('-').trim().to_string();
+    if trimmed.is_empty() {
+        title.to_string()
+    } else {
+        trimmed
+    }
+}
+
 pub fn resolve_downloads_dir(app_handle: &AppHandle) -> std::path::PathBuf {
     let app_dir = app_handle.path().app_data_dir().unwrap_or_else(|_| {
         #[cfg(target_os = "android")]
@@ -128,21 +168,62 @@ pub async fn download_online_track(
 
     // 5. Download artwork if available
     let mut local_cover_path: Option<String> = None;
+    let mut raw_cover_bytes: Option<Vec<u8>> = None;
     if let Some(ref thumb_url) = input.thumbnail {
         if thumb_url.starts_with("http") {
             let cover_file_name = format!("{}.jpg", file_base);
             let dest_cover_path = downloads_dir.join(&cover_file_name);
             if let Ok(cover_resp) = client.get(thumb_url).send().await {
                 if let Ok(cover_bytes) = cover_resp.bytes().await {
-                    if fs::write(&dest_cover_path, &cover_bytes).is_ok() {
+                    let bytes_vec = cover_bytes.to_vec();
+                    if fs::write(&dest_cover_path, &bytes_vec).is_ok() {
                         local_cover_path = Some(dest_cover_path.to_string_lossy().to_string());
                     }
+                    raw_cover_bytes = Some(bytes_vec);
                 }
             }
         }
     }
 
-    // 6. Update database record idempotently
+    // 6. Fetch synchronized & plain lyrics from LRCLIB
+    let mut synced_lyrics: Option<String> = None;
+    let mut plain_lyrics: Option<String> = None;
+    let clean_title = clean_title_for_lyrics(&input.title);
+    let lrclib_url = format!(
+        "https://lrclib.net/api/get?artist_name={}&track_name={}&duration={}",
+        urlencoding::encode(&input.artist),
+        urlencoding::encode(&clean_title),
+        input.duration
+    );
+    if let Ok(lrc_resp) = client.get(&lrclib_url).send().await {
+        if lrc_resp.status().is_success() {
+            if let Ok(lrc_json) = lrc_resp.json::<serde_json::Value>().await {
+                synced_lyrics = lrc_json.get("syncedLyrics").and_then(|v| v.as_str()).map(|s| s.to_string());
+                plain_lyrics = lrc_json.get("plainLyrics").and_then(|v| v.as_str()).map(|s| s.to_string());
+            }
+        }
+    }
+
+    // Save companion .lrc file right alongside audio file for external player support
+    if let Some(ref synced) = synced_lyrics {
+        let lrc_file_name = format!("{}.lrc", file_base);
+        let dest_lrc_path = downloads_dir.join(&lrc_file_name);
+        let _ = fs::write(&dest_lrc_path, synced);
+    }
+
+    // 7. Embed full metadata tags (ID3v2 / MP4 atoms: Title, Artist, Album, Cover Art, Lyrics) into audio file
+    let lyrics_for_tag = plain_lyrics.as_deref().or(synced_lyrics.as_deref());
+    let _ = crate::services::audio_tagger::embed_metadata(
+        &dest_audio_path,
+        &input.title,
+        &input.artist,
+        input.album.as_deref(),
+        None,
+        lyrics_for_tag,
+        raw_cover_bytes.as_deref(),
+    );
+
+    // 8. Update database record idempotently
     let conn = db.0.lock().map_err(|e| e.to_string())?;
 
     let (artist_id, _) = crate::repositories::artist_repository::find_or_create(&conn, &input.artist)
@@ -187,6 +268,17 @@ pub async fn download_online_track(
         ).map_err(|e| format!("Failed to insert downloaded song into DB: {}", e))?;
         conn.last_insert_rowid()
     };
+
+    // 9. Persist lyrics into database for instant offline synced lyrics playback
+    if let Some(ref lrc_content) = synced_lyrics.as_ref().or(plain_lyrics.as_ref()) {
+        let _ = crate::repositories::lyrics_repository::update_lyrics_content(
+            &conn,
+            final_id,
+            lrc_content,
+            "found",
+            "lrclib",
+        );
+    }
 
     crate::repositories::song_repository::get_by_id(&conn, final_id).map_err(|e| e.to_string())
 }
@@ -291,5 +383,13 @@ mod tests {
 
         let res2 = crate::repositories::song_repository::get_by_id(&conn, first_id).unwrap();
         assert_eq!(res2.file_size, updated_size);
+    }
+
+    #[test]
+    fn test_clean_title_for_lyrics() {
+        assert_eq!(clean_title_for_lyrics("Starboy (Official Music Video)"), "Starboy");
+        assert_eq!(clean_title_for_lyrics("Blinding Lights [Lyrics Audio HD]"), "Blinding Lights");
+        assert_eq!(clean_title_for_lyrics("Shape of You (feat. Stormzy)"), "Shape of You");
+        assert_eq!(clean_title_for_lyrics("Comfortably Numb - Remastered"), "Comfortably Numb");
     }
 }
