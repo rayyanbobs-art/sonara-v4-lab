@@ -1,31 +1,31 @@
 import { Link } from "@tanstack/react-router";
-import { Home, Sparkle, Library, Heart, User } from "lucide-react";
+import { Home, Sparkles, Library, Heart, Settings } from "lucide-react";
 
 export const BottomNavBar = () => {
   const navItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Discover", href: "/stream", icon: Sparkle },
+    { name: "Stream", href: "/stream", icon: Sparkles },
     { name: "Favorites", href: "/favorites", icon: Heart },
     { name: "Library", href: "/songs", icon: Library },
-    { name: "Me", href: "/settings", icon: User },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-2xl border-t border-border px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
-      <div className="flex items-center justify-around">
+    <nav className="md:hidden fixed bottom-2 left-0 right-0 z-40 flex items-center justify-center pointer-events-none px-4 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+      <div className="pointer-events-auto flex items-center gap-1 p-1.5 rounded-full bg-card/90 dark:bg-card/95 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 transition-all">
         {navItems.map((item) => (
           <Link
             key={item.name}
             to={item.href}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-muted-foreground hover:text-foreground transition-colors group"
+            className="group relative flex items-center justify-center h-10 px-3 rounded-full text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95 select-none"
             activeProps={{
-              className: "text-foreground font-semibold",
+              className: "bg-primary/20 text-primary font-bold shadow-xs px-3.5",
             }}
           >
-            {/* Active indicator pill */}
-            <div className="h-[3px] w-0 group-[.text-foreground]:w-4 bg-primary rounded-full transition-all duration-200" />
-            <item.icon className="size-5 transition-transform group-active:scale-95" />
-            <span className="text-[10px] tracking-tight font-medium">{item.name}</span>
+            <item.icon className="size-4.5 shrink-0" />
+            <span className="hidden group-[.bg-primary\\/20]:inline-block ml-1.5 text-xs font-semibold tracking-tight whitespace-nowrap">
+              {item.name}
+            </span>
           </Link>
         ))}
       </div>

@@ -15,6 +15,7 @@ import {
 import EmptySongAlert from "@/components/custom/EmptySongAlert";
 import QuickAccessCard from "@/features/home/components/QuickAccessCard";
 import ArtworkTrackCard from "@/features/home/components/ArtworkTrackCard";
+import HeroStatsCard from "@/features/home/components/HeroStatsCard";
 import useGetHomeDataQuery from "@/features/home/api/useGetHomeDataQuery";
 import Loading from "@/components/custom/Loading";
 
@@ -103,6 +104,13 @@ function Index() {
             </button>
           </div>
         </section>
+
+        {/* Material 3 Expressive Hero Stats Card (LastWave Screenshot 6) */}
+        {data.stats && selectedFilter === "all" && (
+          <section>
+            <HeroStatsCard stats={data.stats} />
+          </section>
+        )}
 
         {/* Quick-Access Recents Grid (2-column on mobile, 4-column on desktop) */}
         {quickAccessSongs.length > 0 && selectedFilter !== "stream" && (

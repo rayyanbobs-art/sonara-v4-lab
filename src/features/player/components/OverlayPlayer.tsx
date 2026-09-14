@@ -15,18 +15,23 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
-  Mic2,
   Disc3,
   Check,
   SquarePlus,
   User,
   Sliders,
   Moon,
+  MessageSquareText,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import WavySeekBar from "./WavySeekBar";
+import SignalPathDialog from "./SignalPathDialog";
 import useArtworkPalette from "../hooks/useArtworkPalette";
 import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
+import useAudioEffectsStore, {
+  getQualityShortLabel,
+} from "@/features/audio/store/useAudioEffectsStore";
 import PlaybackQueue from "@/features/queue/components/PlaybackQueue";
 import MarqueeText from "@/components/custom/MarqueText";
 import ActionsDropdown from "@/features/songs/components/ActionsDropdown";
@@ -79,6 +84,8 @@ const OverlayPlayer = ({
   const repeatMode = useAppStore((state) => state.repeatMode);
   const toggleRepeatMode = useAppStore((state) => state.toggleRepeatMode);
 
+  const audioQuality = useAudioEffectsStore((state) => state.audioQuality);
+
 
   const currentPlatform = platform();
   const isMacOS = currentPlatform === "macos";
@@ -118,21 +125,27 @@ const OverlayPlayer = ({
           isExpanded ? "translate-y-0" : "translate-y-full"
         } transition-transform duration-300 ease-out pointer-events-auto overflow-hidden safe-top safe-bottom will-change-transform`}
       >
-        {/* Top Header Bar (Figma Spotify Style) */}
+        {/* Top Header Bar (Material 3 Expressive Style matching LastWave Screenshot 5) */}
         <div
           data-tauri-drag-region={isMacOS}
           className="w-full h-14 shrink-0 flex items-center justify-between px-4 pt-1"
         >
-          <Button variant="ghost" size="icon" onClick={collapse} className="rounded-full" aria-label="Collapse Player">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={collapse}
+            className="size-10 rounded-2xl bg-secondary/80 hover:bg-secondary text-foreground border border-white/5 shadow-xs"
+            aria-label="Collapse Player"
+          >
             <ChevronDown className="size-5" />
           </Button>
 
           {/* Mobile Context Title */}
           <div className="flex md:hidden flex-col items-center justify-center text-center">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-muted-foreground/70">
-              Playing from library
+            <span className="text-[10px] uppercase font-extrabold tracking-widest text-muted-foreground/80">
+              NOW PLAYING
             </span>
-            <span className="text-xs font-bold font-heading text-foreground truncate max-w-[180px]">
+            <span className="text-xs font-bold font-heading text-foreground truncate max-w-[190px]">
               {song.album_name || "Sonara Stream"}
             </span>
           </div>
@@ -155,9 +168,18 @@ const OverlayPlayer = ({
                 )}
               </Button>
             )}
-            <ActionsDropdown song={song}>
-              <AddToPlaylistDialog song={song} />
-            </ActionsDropdown>
+            <SignalPathDialog
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden md:flex rounded-full size-9 text-muted-foreground hover:text-foreground active:scale-90 transition-transform font-bold text-[10px]"
+                  aria-label="Streaming Quality & Signal Path"
+                >
+                  HQ
+                </Button>
+              }
+            />
             <EqualizerDialog
               trigger={
                 <Button
@@ -183,6 +205,9 @@ const OverlayPlayer = ({
               }
             />
             <CastButton />
+            <ActionsDropdown song={song}>
+              <AddToPlaylistDialog song={song} />
+            </ActionsDropdown>
             <div className="hidden md:block">
               <PlaybackQueue />
             </div>
@@ -378,13 +403,13 @@ const OverlayPlayer = ({
             </div>
           </div>
 
-          {/* Mobile Layout (visible on screens < md) */}
+          {/* Mobile Layout (Material 3 Expressive matching LastWave Screenshot 5) */}
           <div className="flex md:hidden flex-col h-full overflow-hidden">
             {mobileTab === "track" ? (
               <div className="flex-1 flex flex-col justify-between py-2 max-w-sm mx-auto w-full px-4 overflow-y-auto">
-                {/* Artwork */}
+                {/* Large Rounded Artwork (Screenshot 5: rounded-3xl) */}
                 <div className="flex-1 min-h-0 flex items-center justify-center py-2">
-                  <div className="w-full max-w-[82vw] aspect-square rounded-2xl bg-linear-to-br from-primary/30 to-primary/10 flex items-center justify-center overflow-hidden shadow-2xl border border-white/10">
+                  <div className="w-full max-w-[84vw] aspect-square rounded-3xl bg-linear-to-br from-primary/30 to-primary/10 flex items-center justify-center overflow-hidden shadow-2xl border border-white/10">
                     {coverSrc ? (
                       <img
                         src={coverSrc}
@@ -397,35 +422,42 @@ const OverlayPlayer = ({
                   </div>
                 </div>
 
-                {/* Track Details & Favorite */}
-                <div className="flex items-center justify-between py-2">
-                  <div className="min-w-0 flex-1 pr-3 space-y-0.5">
+                {/* Track Details, Artist Capsule Chip & Lyrics Toggle (Screenshot 5) */}
+                <div className="flex items-center justify-between py-2 gap-2">
+                  <div className="min-w-0 flex-1 space-y-1.5">
                     <MarqueeText
                       text={song.title}
-                      className="text-xl font-bold leading-tight font-heading truncate"
+                      className="text-2xl font-bold leading-tight font-heading truncate text-foreground"
                     />
-                    <MarqueeText
-                      text={song.artist_name || "Unknown Artist"}
-                      className="text-sm text-muted-foreground font-medium truncate"
-                    />
+                    <div className="flex items-center gap-2">
+                      <span className="px-3.5 py-1 rounded-full bg-secondary/80 border border-border/40 text-xs font-semibold text-foreground truncate max-w-[210px] shadow-xs">
+                        {song.artist_name || "Unknown Artist"}
+                      </span>
+                      <button
+                        onClick={toggleFavorite}
+                        className="p-1 text-muted-foreground hover:text-foreground active:scale-90 transition-transform shrink-0"
+                        aria-label="Toggle Favorite"
+                      >
+                        {song.is_favorite ? (
+                          <Heart className="size-4 text-primary fill-current" />
+                        ) : (
+                          <Heart className="size-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full size-11 shrink-0 text-muted-foreground hover:text-foreground active:scale-90 transition-transform"
-                    onClick={toggleFavorite}
-                    aria-label="Toggle Favorite"
+
+                  <button
+                    onClick={() => setMobileTab("lyrics")}
+                    className="size-11 rounded-2xl bg-secondary/80 hover:bg-secondary text-foreground border border-white/5 shadow-xs flex items-center justify-center active:scale-95 transition-all shrink-0"
+                    aria-label="Open Lyrics"
                   >
-                    {song.is_favorite ? (
-                      <Heart className="size-6 text-primary fill-current" />
-                    ) : (
-                      <Heart className="size-6" />
-                    )}
-                  </Button>
+                    <MessageSquareText className="size-5 text-muted-foreground hover:text-foreground" />
+                  </button>
                 </div>
 
                 {/* Dynamic Wavy Timeline Scrubber (Material 3 Expressive) */}
-                <div className="pt-1 pb-2">
+                <div className="pt-1 pb-1">
                   <WavySeekBar
                     position={position}
                     duration={duration}
@@ -437,97 +469,80 @@ const OverlayPlayer = ({
                   />
                 </div>
 
-                {/* Transport Controls (5 buttons, 64px central play) */}
-                <div className="flex items-center justify-between px-1 py-1">
-                  <Button
-                    variant={isShuffle ? "default" : "ghost"}
-                    size="icon"
-                    className={`rounded-full size-10 ${isShuffle ? "bg-primary/20 text-primary hover:bg-primary/30" : "text-muted-foreground hover:text-foreground"}`}
-                    onClick={() => setIsShuffle(!isShuffle)}
-                    aria-label="Shuffle"
-                  >
-                    <Shuffle className="size-[18px]" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full size-12 text-foreground active:scale-90 transition-transform"
+                {/* Transport Controls Cluster (Screenshot 5: squircle previous/next, tall capsule play/pause) */}
+                <div className="flex items-center justify-center gap-5 px-1 py-2">
+                  <button
                     onClick={onPrevious}
+                    className="rounded-2xl size-14 bg-secondary/70 hover:bg-secondary text-foreground flex items-center justify-center border border-white/5 shadow-xs active:scale-90 transition-transform"
                     aria-label="Previous Track"
                   >
-                    <SkipBack className="size-6" />
-                  </Button>
-                  <Button
-                    size="icon-lg"
-                    className="rounded-full size-16 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 active:scale-95 transition-transform"
+                    <SkipBack className="size-6 fill-current" />
+                  </button>
+                  <button
                     onClick={isPlaying ? onPause : onPlay}
+                    className="rounded-3xl h-16 w-20 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 flex items-center justify-center active:scale-95 transition-transform"
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
                     {isPlaying ? (
-                      <Pause className="size-7 fill-current" />
+                      <Pause className="size-8 fill-current" />
                     ) : (
-                      <Play className="size-7 fill-current ml-0.5" />
+                      <Play className="size-8 fill-current ml-1" />
                     )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="rounded-full size-12 text-foreground active:scale-90 transition-transform"
+                  </button>
+                  <button
                     onClick={onNext}
+                    className="rounded-2xl size-14 bg-secondary/70 hover:bg-secondary text-foreground flex items-center justify-center border border-white/5 shadow-xs active:scale-90 transition-transform"
                     aria-label="Next Track"
                   >
-                    <SkipForward className="size-6" />
-                  </Button>
-                  <Button
-                    variant={repeatMode !== "off" ? "default" : "ghost"}
-                    size="icon"
-                    className={`rounded-full size-10 ${repeatMode !== "off" ? "bg-primary/20 text-primary hover:bg-primary/30" : "text-muted-foreground hover:text-foreground"}`}
-                    onClick={toggleRepeatMode}
-                    aria-label="Repeat Mode"
-                  >
-                    {repeatMode === "off" && <Repeat className="size-[18px]" />}
-                    {repeatMode === "one" && <Repeat1 className="size-[18px]" />}
-                    {repeatMode === "all" && <Repeat className="size-[18px]" />}
-                  </Button>
+                    <SkipForward className="size-6 fill-current" />
+                  </button>
                 </div>
 
-                {/* Bottom Utility Row: Download / Lyrics Switcher / Queue */}
-                <div className="flex items-center justify-between pt-3 pb-2 px-2 border-t border-white/5">
-                  <div className="w-10 flex items-center justify-start">
-                    {isOnline ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full size-10 text-muted-foreground hover:text-foreground"
-                        disabled={downloadMutation.isPending || downloadMutation.isSuccess}
-                        onClick={() => downloadMutation.mutate({ song })}
-                        aria-label="Download Song"
-                      >
-                        {downloadMutation.isPending ? (
-                          <Loader2 className="size-4.5 animate-spin text-primary" />
-                        ) : downloadMutation.isSuccess ? (
-                          <Check className="size-4.5 text-emerald-500" />
-                        ) : (
-                          <Download className="size-4.5" />
-                        )}
-                      </Button>
-                    ) : (
-                      <div className="size-10" />
-                    )}
-                  </div>
-
+                {/* Bottom Action Row (Screenshot 5: Shuffle, Audio Quality Pill [HQ FLAC 24/96], Repeat) */}
+                <div className="flex items-center justify-between gap-3 pt-3 pb-2 px-1 border-t border-white/5">
                   <button
-                    onClick={() => setMobileTab("lyrics")}
-                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/5 hover:bg-white/10 active:scale-95 transition-all text-xs font-medium text-muted-foreground hover:text-foreground border border-white/10"
-                    aria-label="Open Lyrics"
+                    onClick={() => setIsShuffle(!isShuffle)}
+                    className={cn(
+                      "rounded-2xl h-12 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs",
+                      isShuffle
+                        ? "bg-primary/20 text-primary border-primary/30"
+                        : "bg-secondary/70 hover:bg-secondary text-foreground border-white/5"
+                    )}
+                    aria-label="Shuffle"
                   >
-                    <Mic2 className="size-3.5 text-primary" />
-                    <span>Lyrics</span>
+                    <Shuffle className="size-5" />
                   </button>
 
-                  <div className="w-10 flex items-center justify-end">
-                    <PlaybackQueue />
-                  </div>
+                  <SignalPathDialog
+                    trigger={
+                      <button
+                        className="rounded-2xl h-12 px-5 bg-secondary/70 hover:bg-secondary border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-foreground active:scale-95 transition-all shrink-0 shadow-xs"
+                        aria-label="Audio Quality and Signal Path"
+                      >
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+                          HQ
+                        </span>
+                        <span className="tracking-wide">
+                          {getQualityShortLabel(audioQuality)}
+                        </span>
+                      </button>
+                    }
+                  />
+
+                  <button
+                    onClick={toggleRepeatMode}
+                    className={cn(
+                      "rounded-2xl h-12 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs",
+                      repeatMode !== "off"
+                        ? "bg-primary/20 text-primary border-primary/30"
+                        : "bg-secondary/70 hover:bg-secondary text-foreground border-white/5"
+                    )}
+                    aria-label="Repeat Mode"
+                  >
+                    {repeatMode === "off" && <Repeat className="size-5" />}
+                    {repeatMode === "one" && <Repeat1 className="size-5" />}
+                    {repeatMode === "all" && <Repeat className="size-5" />}
+                  </button>
                 </div>
               </div>
             ) : (

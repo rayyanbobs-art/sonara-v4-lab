@@ -29,6 +29,60 @@ export const EQ_PRESETS: Record<Exclude<EqPresetName, "Custom">, number[]> = {
 
 export type SleepTimerDuration = "15" | "30" | "45" | "60" | "end_of_track" | null;
 
+export type AudioQualityTier =
+  | "max"
+  | "hires"
+  | "lossless"
+  | "saver"
+  | "high"
+  | "balanced";
+
+export interface AudioQualityOption {
+  id: "max" | "hires" | "lossless" | "saver";
+  title: string;
+  badge: string;
+  subtext: string;
+  shortLabel: string;
+}
+
+export const AUDIO_QUALITY_OPTIONS: AudioQualityOption[] = [
+  {
+    id: "max",
+    title: "Max Quality",
+    badge: "24-BIT / 192k",
+    subtext: "Up to 24-bit / 192 kHz • Lossless Studio FLAC",
+    shortLabel: "FLAC 24/192",
+  },
+  {
+    id: "hires",
+    title: "Hi-Res Audio",
+    badge: "24-BIT / 96k",
+    subtext: "24-bit / 96 kHz • Lossless Studio FLAC",
+    shortLabel: "FLAC 24/96",
+  },
+  {
+    id: "lossless",
+    title: "CD Lossless",
+    badge: "16-BIT / 44.1k",
+    subtext: "16-bit / 44.1 kHz • Lossless CD FLAC",
+    shortLabel: "FLAC 16/44.1",
+  },
+  {
+    id: "saver",
+    title: "Standard Quality",
+    badge: "320 kbps",
+    subtext: "320 kbps • MP3 (Data Saver)",
+    shortLabel: "320 kbps",
+  },
+];
+
+export const getQualityShortLabel = (quality: AudioQualityTier): string => {
+  if (quality === "max" || quality === "high") return "FLAC 24/192";
+  if (quality === "hires" || quality === "balanced") return "FLAC 24/96";
+  if (quality === "lossless") return "FLAC 16/44.1";
+  return "320 kbps";
+};
+
 interface AudioEffectsState {
   // Equalizer
   eqEnabled: boolean;
@@ -50,9 +104,13 @@ interface AudioEffectsState {
   crossfadeDuration: number; // 0 to 12 seconds (0 = off)
   setCrossfadeDuration: (seconds: number) => void;
 
-  // Audio Quality / Fidelity
-  audioQuality: "high" | "balanced" | "saver";
-  setAudioQuality: (quality: "high" | "balanced" | "saver") => void;
+  // Audio Quality / Fidelity (Material 3 Expressive 4-tier)
+  audioQuality: AudioQualityTier;
+  setAudioQuality: (quality: AudioQualityTier) => void;
+
+  // Experimental Liquid Glass (translucent specular UI materials)
+  liquidGlass: boolean;
+  setLiquidGlass: (enabled: boolean) => void;
 
   // Sleep Timer
   sleepTimerType: SleepTimerDuration;
@@ -101,8 +159,11 @@ export const useAudioEffectsStore = create<AudioEffectsState>()(
       setCrossfadeDuration: (seconds) =>
         set({ crossfadeDuration: Math.max(0, Math.min(12, seconds)) }),
 
-      audioQuality: "high",
+      audioQuality: "max",
       setAudioQuality: (quality) => set({ audioQuality: quality }),
+
+      liquidGlass: true,
+      setLiquidGlass: (enabled) => set({ liquidGlass: enabled }),
 
       sleepTimerType: null,
       sleepTimerEndsAt: null,
@@ -136,6 +197,7 @@ export const useAudioEffectsStore = create<AudioEffectsState>()(
         peakProtection: state.peakProtection,
         crossfadeDuration: state.crossfadeDuration,
         audioQuality: state.audioQuality,
+        liquidGlass: state.liquidGlass,
       }),
     }
   )

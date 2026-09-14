@@ -28,15 +28,21 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { colorOptions, themeOptions } from "@/constants/constants";
 import { checkForAppUpdates } from "@/utils/updater";
 import LibraryManagement from "@/features/settings/components/LibraryManagement";
 import useGetAppStatsQuery from "@/features/settings/api/useGetAppStatsQuery";
 import useAppStore from "@/store/app-store";
-import { useAudioEffectsStore } from "@/features/audio/store/useAudioEffectsStore";
+import {
+  useAudioEffectsStore,
+  AUDIO_QUALITY_OPTIONS,
+  type AudioQualityTier,
+} from "@/features/audio/store/useAudioEffectsStore";
 import EqualizerDialog from "@/features/audio/components/EqualizerDialog";
 import SleepTimerDialog from "@/features/audio/components/SleepTimerDialog";
 import ScrobblerDialog from "@/features/scrobbler/components/ScrobblerDialog";
+import SignalPathDialog from "@/features/player/components/SignalPathDialog";
 
 export const Route = createFileRoute("/settings/")({
   component: RouteComponent,
@@ -54,6 +60,8 @@ function RouteComponent() {
   const setAudioQuality = useAudioEffectsStore((state) => state.setAudioQuality);
   const crossfadeDuration = useAudioEffectsStore((state) => state.crossfadeDuration);
   const setCrossfadeDuration = useAudioEffectsStore((state) => state.setCrossfadeDuration);
+  const liquidGlass = useAudioEffectsStore((state) => state.liquidGlass);
+  const setLiquidGlass = useAudioEffectsStore((state) => state.setLiquidGlass);
 
   const { data } = useGetAppStatsQuery();
 
@@ -249,46 +257,65 @@ function RouteComponent() {
           {/* Audio Quality & Studio DSP (LastWave Feature Parity) */}
           <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
-                <SlidersHorizontal size={18} className="text-primary" />
-                Audio Quality & Studio DSP
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Lossless streaming fidelity, 15-band studio equalizer & auto sleep timers
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <SlidersHorizontal size={18} className="text-primary" />
+                    Audio Quality & Studio DSP
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Lossless streaming fidelity, bit-perfect DAC pass-through & 15-band equalizer
+                  </CardDescription>
+                </div>
+                <SignalPathDialog
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs font-bold gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                    >
+                      <span className="text-[10px] uppercase font-black px-1 rounded bg-primary/20">HQ</span>
+                      Signal Path
+                    </Button>
+                  }
+                />
+              </div>
             </CardHeader>
             <CardContent className="space-y-5">
-              {/* Stream & Download Quality */}
+              {/* Stream & Download Quality (4-Tier matching Screenshot 3) */}
               <div>
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
                   Streaming & Download Fidelity
                 </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {[
-                    { id: "high", title: "High Fidelity", desc: "Best audio (up to 256k AAC/Opus)" },
-                    { id: "balanced", title: "Balanced", desc: "Standard 160k quality" },
-                    { id: "saver", title: "Data Saver", desc: "Lightweight 96k stream" },
-                  ].map((tier) => (
-                    <div
-                      key={tier.id}
-                      onClick={() => setAudioQuality(tier.id as "high" | "balanced" | "saver")}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                        audioQuality === tier.id
-                          ? "border-primary bg-primary/10 shadow-sm"
-                          : "border-border bg-muted/40 hover:border-foreground/20"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-foreground">{tier.title}</span>
-                        {audioQuality === tier.id && (
-                          <span className="size-2 rounded-full bg-primary" />
-                        )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {AUDIO_QUALITY_OPTIONS.map((tier) => {
+                    const isSelected =
+                      audioQuality === tier.id ||
+                      (tier.id === "max" && audioQuality === "high") ||
+                      (tier.id === "hires" && audioQuality === "balanced");
+
+                    return (
+                      <div
+                        key={tier.id}
+                        onClick={() => setAudioQuality(tier.id as AudioQualityTier)}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? "border-primary bg-primary/10 shadow-sm"
+                            : "border-border bg-muted/40 hover:border-foreground/20"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-foreground">{tier.title}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase bg-background text-primary border border-primary/20">
+                            {tier.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                          {tier.subtext}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-1 leading-tight">
-                        {tier.desc}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -371,6 +398,48 @@ function RouteComponent() {
                     Downloads automatically embed front cover art, ID3v2/MP4 container tags, and save companion <code className="text-primary font-mono text-[10px]">.lrc</code> synchronized lyrics files for 100% offline accuracy.
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Experimental Section (Matching LastWave Screenshot 3) */}
+          <Card className="border-border bg-card backdrop-blur-xs rounded-2xl shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <Sparkles size={18} className="text-primary" />
+                Experimental
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Cutting-edge Material 3 Expressive and tactile audio features
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Liquid Glass Toggle */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40">
+                <div className="space-y-0.5 pr-4">
+                  <div className="text-sm font-bold text-foreground">Liquid Glass</div>
+                  <p className="text-xs text-muted-foreground">
+                    iOS-style translucent materials and specular refraction across the app
+                  </p>
+                </div>
+                <Switch
+                  checked={liquidGlass}
+                  onCheckedChange={setLiquidGlass}
+                  aria-label="Toggle Liquid Glass"
+                />
+              </div>
+
+              {/* Lyrics Animation Info */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40">
+                <div className="space-y-0.5 pr-4">
+                  <div className="text-sm font-bold text-foreground">Lyrics Animation Engine</div>
+                  <p className="text-xs text-muted-foreground">
+                    Apple Fluid • Smooth spring scaling with dynamic focal tracking & karaoke physics
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                  Active
+                </span>
               </div>
             </CardContent>
           </Card>
