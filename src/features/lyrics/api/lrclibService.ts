@@ -14,23 +14,23 @@ const lyricsCache = new Map<string, string | null>();
 /**
  * Strips common metadata noise from track titles (YouTube markers, remixes, remasters, features)
  */
-export function cleanTrackTitle(rawTitle: string): string {
+export function cleanTrackTitle(rawTitle: string, rawArtist?: string): string {
   if (!rawTitle) return "";
   let title = rawTitle;
 
-  // Remove bracketed suffixes like [Official Video], (Audio), (Lyric Video), etc.
+  // Remove bracketed suffixes like [Official Video], [Lyric Video], (Audio), (Lyrics), etc.
   title = title.replace(
-    /\[(?:official\s*(?:video|audio|music\s*video|lyric\s*video|hd|4k)?|audio|lyrics?|visualizer)\]/gi,
+    /\[\s*(?:official\s*)?(?:music\s*video|lyric\s*video|video|audio|lyrics?|visualizer|hd|4k|official)\s*\]/gi,
     ""
   );
   title = title.replace(
-    /\((?:official\s*(?:video|audio|music\s*video|lyric\s*video|hd|4k)?|audio|lyrics?|visualizer)\)/gi,
+    /\(\s*(?:official\s*)?(?:music\s*video|lyric\s*video|video|audio|lyrics?|visualizer|hd|4k|official)\s*\)/gi,
     ""
   );
 
   // Remove remaster / bonus track noise
-  title = title.replace(/\((?:remastered|remaster|anniversary|deluxe)[^)]*\)/gi, "");
-  title = title.replace(/\[(?:remastered|remaster|anniversary|deluxe)[^\]]*\]/gi, "");
+  title = title.replace(/\([^)]*(?:remastered|remaster|anniversary|deluxe)[^)]*\)/gi, "");
+  title = title.replace(/\[[^\]]*(?:remastered|remaster|anniversary|deluxe)[^\]]*\]/gi, "");
 
   // Remove (feat. ...) or [feat. ...]
   title = title.replace(/\((?:feat|ft)\.?\s+[^)]+\)/gi, "");
@@ -38,6 +38,35 @@ export function cleanTrackTitle(rawTitle: string): string {
 
   // Remove leading track numbers like "01. "
   title = title.replace(/^\d+[\s.-]+/, "");
+
+  // Remove Artist prefix/suffix if present in format "Artist - Title" or "Title - Artist"
+  if (rawArtist) {
+    const cleanArt = cleanArtistName(rawArtist).toLowerCase();
+    if (cleanArt) {
+      if (title.toLowerCase().startsWith(cleanArt + " -")) {
+        title = title.slice(cleanArt.length + 2);
+      } else if (title.toLowerCase().startsWith(cleanArt + "-")) {
+        title = title.slice(cleanArt.length + 1);
+      } else if (title.toLowerCase().endsWith("- " + cleanArt)) {
+        title = title.slice(0, -(cleanArt.length + 2));
+      } else if (title.toLowerCase().endsWith("-" + cleanArt)) {
+        title = title.slice(0, -(cleanArt.length + 1));
+      }
+    }
+  }
+
+  // If there's still a hyphen separator e.g. "Artist - Title" and one part is the artist
+  if (title.includes(" - ")) {
+    const parts = title.split(" - ");
+    if (parts.length === 2 && rawArtist) {
+      const cleanArt = cleanArtistName(rawArtist).toLowerCase();
+      if (parts[0].trim().toLowerCase() === cleanArt) {
+        title = parts[1];
+      } else if (parts[1].trim().toLowerCase() === cleanArt) {
+        title = parts[0];
+      }
+    }
+  }
 
   return title.trim();
 }
@@ -68,7 +97,7 @@ export async function fetchLrclibLyrics(
     return lyricsCache.get(cacheKey)!;
   }
 
-  const cleanedTitle = cleanTrackTitle(title);
+  const cleanedTitle = cleanTrackTitle(title, artist);
   const cleanedArtist = cleanArtistName(artist);
 
   // 1. Exact match attempt via /api/get

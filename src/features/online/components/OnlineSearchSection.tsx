@@ -47,6 +47,26 @@ export const OnlineSearchSection = () => {
     invoke("get_stream_url", { id: track.id }).catch(() => {});
   }, []);
 
+  // Close suggestions on outside click/touch
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        suggestionsBoxRef.current &&
+        !suggestionsBoxRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
+
   // Real-time suggestions fetching
   useEffect(() => {
     const trimmed = query.trim();
@@ -188,7 +208,8 @@ export const OnlineSearchSection = () => {
             {suggestions.map((suggestion, idx) => (
               <div
                 key={suggestion}
-                onMouseDown={() => {
+                onPointerDown={(e) => {
+                  e.preventDefault();
                   setQuery(suggestion);
                   performSearch(suggestion);
                 }}
