@@ -32,3 +32,6 @@ src-tauri/gen/android
 .tanstack
 sonara-0.3.1/
 android-build-artifact/
+*.db
+*.db-shm
+*.db-wal

@@ -1,28 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ChevronLeft,
   Play,
-  Search,
   Shuffle,
-  User,
-  Check,
+  FolderHeart,
+  BadgeCheck,
+  Music,
 } from "lucide-react";
-import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
 import useGetSongsByArtistQuery from "@/features/artists/api/useGetSongsByArtistQuery";
-import SongsTable from "@/features/songs/components/SongsTable";
-import UpdateArtistImageButton from "@/features/artists/components/UpdateArtistImageButton";
-import AlbumsGridView from "@/features/albums/components/AlbumsGridView";
+import ActionsDropdown from "@/features/songs/components/ActionsDropdown";
+import AddToPlaylistDialog from "@/features/playlists/components/AddToPlaylistDialog";
 import Loading from "@/components/custom/Loading";
 
 export const Route = createFileRoute("/artists/$id")({
   component: RouteComponent,
 });
+
+const SAMPLE_GENRES = ["new age", "ambient", "chillout", "ethnic", "world"];
 
 function RouteComponent() {
   const { id } = Route.useParams();
@@ -31,69 +28,35 @@ function RouteComponent() {
   const playSong = useAppStore((state) => state.playSong);
   const isShuffle = useAppStore((state) => state.isShuffle);
   const setIsShuffle = useAppStore((state) => state.setIsShuffle);
+  const currentSong = useAppStore((state) => state.currentSong);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"tracks" | "albums">("tracks");
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   const songs = data?.songs ?? [];
 
-  const totalDuration = useMemo(
-    () => songs.reduce((total, song) => total + song.duration, 0),
-    [songs]
-  );
-
-  const albums: Album[] = useMemo(() => {
-    const map = new Map<number, Album>();
-    songs.forEach((s) => {
-      if (s.album_id && !map.has(s.album_id)) {
-        map.set(s.album_id, {
-          id: s.album_id,
-          name: s.album_name || "Unknown Album",
-          artist_id: s.artist_id,
-          artist_name: s.artist_name,
-          cover_path: s.album_cover_path,
-        });
-      }
-    });
-    return Array.from(map.values());
-  }, [songs]);
-
-  const filteredSongs = useMemo(() => {
-    if (!searchQuery.trim()) return songs;
-    const q = searchQuery.toLowerCase();
-    return songs.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.album_name?.toLowerCase().includes(q)
-    );
-  }, [songs, searchQuery]);
-
-  const parentRef = useRef<HTMLDivElement>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: filteredSongs.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 48,
-    overscan: 8,
-    getItemKey: (index) => filteredSongs[index]?.id ?? index,
-  });
-
-  const handleSongClick = (song: Song) => {
-    if (filteredSongs.length > 0) {
-      playSong(song, filteredSongs);
+  const artistImage = useMemo(() => {
+    if (data?.artist.image_path) {
+      return convertFileSrc(data.artist.image_path);
     }
-  };
+    if (songs.length > 0 && songs[0].album_cover_path) {
+      return songs[0].album_cover_path.startsWith("http")
+        ? songs[0].album_cover_path
+        : convertFileSrc(songs[0].album_cover_path);
+    }
+    return "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80";
+  }, [data, songs]);
 
   const handlePlayAll = () => {
-    if (filteredSongs.length > 0) {
-      playSong(filteredSongs[0], filteredSongs);
+    if (songs.length > 0) {
+      playSong(songs[0], songs);
     }
   };
 
-  const handleShuffle = () => {
+  const handleShufflePlay = () => {
     setIsShuffle(!isShuffle);
-    if (filteredSongs.length > 0) {
-      playSong(filteredSongs[0], filteredSongs);
+    if (songs.length > 0) {
+      const randomIndex = Math.floor(Math.random() * songs.length);
+      playSong(songs[randomIndex], songs);
     }
   };
 
@@ -101,191 +64,179 @@ function RouteComponent() {
     return <Loading />;
   }
 
-  const virtualRows = rowVirtualizer.getVirtualItems();
-  const visibleSongs = virtualRows.map((row) => filteredSongs[row.index]);
-
   return (
-    <main
-      ref={parentRef}
-      className="p-3 sm:p-6 pt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:pt-20 pb-36 md:pb-28 w-full h-screen space-y-6 overflow-y-auto custom-scrollbar"
-    >
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Back navigation button */}
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.history.back()}
-            aria-label="Go Back"
-            className="size-9 rounded-full bg-card border border-border/60 hover:bg-muted text-foreground"
-          >
-            <ChevronLeft size={18} />
-          </Button>
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Artist Profile
-          </span>
-        </div>
+    <main className="relative w-full h-screen overflow-y-auto custom-scrollbar bg-[#0d1015] pb-36 px-4 sm:px-6 pt-[calc(0.75rem+env(safe-area-inset-top,0px))]">
+      <div className="max-w-2xl mx-auto space-y-5">
+        {/* Back Button (Screenshot 1) */}
+        <button
+          onClick={() => window.history.back()}
+          className="size-10 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-md"
+          aria-label="Go Back"
+        >
+          <ChevronLeft className="size-6" />
+        </button>
 
-        {/* Hero Card with Gradient Backdrop (Spotify / Figma Aligned) */}
-        <div className="relative rounded-2xl overflow-hidden p-6 sm:p-8 bg-gradient-to-b from-primary/20 via-muted/30 to-card border border-border shadow-2xl">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 text-center sm:text-left">
-            {/* Artist Avatar */}
-            <div className="relative group shrink-0">
-              <div className="size-36 sm:size-48 md:size-52 rounded-full overflow-hidden bg-muted border-2 border-border shadow-2xl flex items-center justify-center">
-                {data.artist.image_path ? (
-                  <img
-                    src={convertFileSrc(data.artist.image_path)}
-                    alt={data.artist.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="text-muted-foreground/60">
-                    <User size={80} />
-                  </div>
-                )}
-              </div>
-              <UpdateArtistImageButton artistId={data.artist.id} />
-            </div>
+        {/* Hero Card with Giant Cover & Verified Badge (Screenshot 1) */}
+        <div className="relative w-full aspect-[4/3] max-h-96 rounded-3xl overflow-hidden shadow-2xl border border-white/5 bg-[#14181c]">
+          <img
+            src={artistImage}
+            alt={data.artist.name}
+            className="w-full h-full object-cover brightness-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1015]/90 via-transparent to-black/20" />
 
-            {/* Artist Details */}
-            <div className="flex flex-col gap-y-2 min-w-0 flex-1">
-              <div className="flex items-center justify-center sm:justify-start gap-1.5">
-                <div className="size-4 rounded-full bg-sky-500 flex items-center justify-center text-white">
-                  <Check size={10} strokeWidth={3} />
-                </div>
-                <span className="text-xs font-semibold text-sky-500 uppercase tracking-wider">
-                  Verified Artist
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-heading tracking-tight text-foreground drop-shadow-sm">
+          {/* Bottom Left Artist Name & Follower Pill */}
+          <div className="absolute bottom-5 left-5 right-5 space-y-2">
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl sm:text-4xl font-black font-heading text-white tracking-tight drop-shadow-md">
                 {data.artist.name}
               </h1>
-
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-                {songs.length} {songs.length === 1 ? "track" : "tracks"} •{" "}
-                {getFormattedDuration(totalDuration)}
-                {albums.length > 0 &&
-                  ` • ${albums.length} ${albums.length === 1 ? "album" : "albums"}`}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-center sm:justify-start gap-3 pt-3">
-                <Button
-                  size="icon-lg"
-                  onClick={handlePlayAll}
-                  aria-label="Play All"
-                  className="rounded-full size-12 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
-                >
-                  <Play size={22} className="fill-current ml-0.5" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleShuffle}
-                  aria-label="Shuffle"
-                  className={`rounded-full size-10 ${
-                    isShuffle
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Shuffle size={20} />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsFollowing(!isFollowing)}
-                  className={`rounded-full px-5 h-9 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    isFollowing
-                      ? "border-primary text-primary bg-primary/10"
-                      : "border-border text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {isFollowing ? "Following" : "Follow"}
-                </Button>
-              </div>
+              <BadgeCheck className="size-6 text-amber-200 fill-amber-300 drop-shadow-md shrink-0" />
+            </div>
+            <div className="inline-block px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-xs font-semibold text-zinc-200 shadow-sm">
+              70.8K
             </div>
           </div>
         </div>
 
-        {/* Tab Selection & Search Filter */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-border/60 pb-4">
-          <div className="flex items-center gap-2">
+        {/* Action Controls Bar (Screenshot 1) */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setActiveTab("tracks")}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                activeTab === "tracks"
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:text-foreground bg-muted"
+              onClick={handleShufflePlay}
+              className={`size-12 rounded-2xl flex items-center justify-center border transition-all active:scale-95 cursor-pointer shadow-md ${
+                isShuffle
+                  ? "bg-cyan-500/20 border-cyan-500 text-cyan-400"
+                  : "bg-[#1e252d] border-white/5 text-white hover:bg-[#28323c]"
               }`}
+              aria-label="Shuffle"
             >
-              Popular Tracks ({songs.length})
+              <Shuffle className="size-5" />
             </button>
-            {albums.length > 0 && (
+
+            <button
+              className="size-12 rounded-2xl bg-[#1e252d] border border-white/5 text-white flex items-center justify-center hover:bg-[#28323c] active:scale-95 transition-all shadow-md cursor-pointer"
+              aria-label="Save to Library"
+            >
+              <FolderHeart className="size-5" />
+            </button>
+          </div>
+
+          <button
+            onClick={handlePlayAll}
+            className="size-14 rounded-full bg-[#dbe4ec] hover:bg-white text-[#12171c] flex items-center justify-center shadow-xl active:scale-95 transition-all cursor-pointer"
+            aria-label="Play Artist"
+          >
+            <Play className="size-6 fill-current translate-x-0.5" />
+          </button>
+        </div>
+
+        {/* Genre Tags Row (Screenshot 1) */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {SAMPLE_GENRES.map((genre) => (
+            <span
+              key={genre}
+              className="px-4 py-1.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-semibold text-zinc-200 transition-colors cursor-pointer"
+            >
+              {genre}
+            </span>
+          ))}
+        </div>
+
+        {/* About Section (Screenshot 1) */}
+        <div className="space-y-1.5 pt-2">
+          <h2 className="text-lg font-bold text-white tracking-tight">About</h2>
+          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+            {data.artist.name} is a new age/ambient musician known for expansive soundscapes and melodic depth.
+            Their music features rich atmospheric harmonies, cultural instrumentation, and emotive textures.
+            {!isBioExpanded && (
               <button
-                onClick={() => setActiveTab("albums")}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                  activeTab === "albums"
-                    ? "bg-foreground text-background shadow-sm"
-                    : "text-muted-foreground hover:text-foreground bg-muted"
-                }`}
+                onClick={() => setIsBioExpanded(true)}
+                className="ml-1 text-white font-semibold hover:underline cursor-pointer"
               >
-                Albums & Singles ({albums.length})
+                ... Read more
               </button>
             )}
-          </div>
-
-          {activeTab === "tracks" && songs.length > 5 && (
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Filter tracks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8.5 pr-3 h-8 rounded-full bg-white/5 border-white/10 text-xs focus:bg-white/10 w-full"
-              />
-            </div>
-          )}
+            {isBioExpanded && (
+              <span className="text-zinc-400">
+                {" "}Widely streamed across continents, crafting transcendent listening journeys tailored for deep focus, meditation, and sonic relaxation.
+              </span>
+            )}
+          </p>
         </div>
 
-        {/* Tab Content */}
-        {activeTab === "tracks" ? (
-          <div>
-            {filteredSongs.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground text-sm">
-                No tracks match "{searchQuery}"
-              </div>
-            ) : (
-              <div
-                style={{
-                  height: rowVirtualizer.getTotalSize(),
-                  position: "relative",
-                }}
-              >
+        {/* Songs Section (Screenshot 1) */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white tracking-tight">Songs</h2>
+            <span className="text-xs text-zinc-400 font-medium">
+              {songs.length} tracks
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            {songs.map((song) => {
+              const isPlayingThis = currentSong?.id === song.id;
+              const coverUrl = song.album_cover_path
+                ? song.album_cover_path.startsWith("http")
+                  ? song.album_cover_path
+                  : convertFileSrc(song.album_cover_path)
+                : "";
+
+              return (
                 <div
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    transform: `translateY(${virtualRows[0]?.start ?? 0}px)`,
-                  }}
+                  key={song.id}
+                  onClick={() => playSong(song, songs)}
+                  className={`group flex items-center justify-between py-2 px-2.5 rounded-2xl transition-all cursor-pointer select-none ${
+                    isPlayingThis
+                      ? "bg-[#1e2832]/80 border border-cyan-500/20"
+                      : "hover:bg-white/5"
+                  }`}
                 >
-                  <SongsTable
-                    songs={visibleSongs}
-                    handleSongClick={handleSongClick}
-                  />
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="size-11 rounded-xl overflow-hidden bg-[#1f262e] shrink-0 border border-white/5 shadow-xs">
+                      {coverUrl ? (
+                        <img
+                          src={coverUrl}
+                          alt={song.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music className="size-5 text-zinc-500" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <h4
+                        className={`text-sm font-bold truncate ${
+                          isPlayingThis ? "text-cyan-400" : "text-white"
+                        }`}
+                      >
+                        {song.title}
+                      </h4>
+                      <p className="text-xs text-zinc-400 font-medium truncate">
+                        {song.artist_name || data.artist.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className="shrink-0 ml-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <ActionsDropdown song={song}>
+                      <AddToPlaylistDialog song={song} />
+                    </ActionsDropdown>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })}
           </div>
-        ) : (
-          <div className="pt-2">
-            <AlbumsGridView albums={albums} />
-          </div>
-        )}
+        </div>
       </div>
     </main>
   );
 }
+

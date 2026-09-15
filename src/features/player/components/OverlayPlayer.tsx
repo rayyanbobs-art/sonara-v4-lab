@@ -29,9 +29,6 @@ import SignalPathDialog from "./SignalPathDialog";
 import useArtworkPalette from "../hooks/useArtworkPalette";
 import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
-import useAudioEffectsStore, {
-  getQualityShortLabel,
-} from "@/features/audio/store/useAudioEffectsStore";
 import PlaybackQueue from "@/features/queue/components/PlaybackQueue";
 import MarqueeText from "@/components/custom/MarqueText";
 import ActionsDropdown from "@/features/songs/components/ActionsDropdown";
@@ -83,9 +80,6 @@ const OverlayPlayer = ({
 
   const repeatMode = useAppStore((state) => state.repeatMode);
   const toggleRepeatMode = useAppStore((state) => state.toggleRepeatMode);
-
-  const audioQuality = useAudioEffectsStore((state) => state.audioQuality);
-
 
   const currentPlatform = platform();
   const isMacOS = currentPlatform === "macos";
@@ -469,18 +463,18 @@ const OverlayPlayer = ({
                   />
                 </div>
 
-                {/* Transport Controls Cluster (Screenshot 5: squircle previous/next, tall capsule play/pause) */}
-                <div className="flex items-center justify-center gap-5 px-1 py-2">
+                {/* Transport Controls Cluster (Screenshot 5: circular previous/next, soft cream squircle play/pause) */}
+                <div className="flex items-center justify-center gap-5 px-1 py-3">
                   <button
                     onClick={onPrevious}
-                    className="rounded-2xl size-14 bg-secondary/70 hover:bg-secondary text-foreground flex items-center justify-center border border-white/5 shadow-xs active:scale-90 transition-transform"
+                    className="rounded-full size-15 bg-[#1b2229] hover:bg-[#252e37] text-white flex items-center justify-center border border-white/5 shadow-md active:scale-90 transition-transform"
                     aria-label="Previous Track"
                   >
                     <SkipBack className="size-6 fill-current" />
                   </button>
                   <button
                     onClick={isPlaying ? onPause : onPlay}
-                    className="rounded-3xl h-16 w-20 bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 flex items-center justify-center active:scale-95 transition-transform"
+                    className="rounded-[28px] size-20 bg-[#dbe4ec] text-[#12171c] hover:bg-white shadow-2xl flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                     aria-label={isPlaying ? "Pause" : "Play"}
                   >
                     {isPlaying ? (
@@ -491,7 +485,7 @@ const OverlayPlayer = ({
                   </button>
                   <button
                     onClick={onNext}
-                    className="rounded-2xl size-14 bg-secondary/70 hover:bg-secondary text-foreground flex items-center justify-center border border-white/5 shadow-xs active:scale-90 transition-transform"
+                    className="rounded-full size-15 bg-[#1b2229] hover:bg-[#252e37] text-white flex items-center justify-center border border-white/5 shadow-md active:scale-90 transition-transform"
                     aria-label="Next Track"
                   >
                     <SkipForward className="size-6 fill-current" />
@@ -503,10 +497,10 @@ const OverlayPlayer = ({
                   <button
                     onClick={() => setIsShuffle(!isShuffle)}
                     className={cn(
-                      "rounded-2xl h-12 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs",
+                      "rounded-2xl h-14 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs cursor-pointer",
                       isShuffle
-                        ? "bg-primary/20 text-primary border-primary/30"
-                        : "bg-secondary/70 hover:bg-secondary text-foreground border-white/5"
+                        ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/30"
+                        : "bg-[#14191e] hover:bg-[#1c2228] text-white border-white/5"
                     )}
                     aria-label="Shuffle"
                   >
@@ -516,14 +510,14 @@ const OverlayPlayer = ({
                   <SignalPathDialog
                     trigger={
                       <button
-                        className="rounded-2xl h-12 px-5 bg-secondary/70 hover:bg-secondary border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-foreground active:scale-95 transition-all shrink-0 shadow-xs"
+                        className="rounded-2xl h-14 px-5 bg-[#14191e] hover:bg-[#1c2228] border border-white/5 flex items-center justify-center gap-2 text-xs font-bold text-white active:scale-95 transition-all shrink-0 shadow-xs cursor-pointer"
                         aria-label="Audio Quality and Signal Path"
                       >
-                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary border border-primary/30">
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-white/10 text-cyan-300 border border-cyan-500/30">
                           HQ
                         </span>
                         <span className="tracking-wide">
-                          {getQualityShortLabel(audioQuality)}
+                          FLAC 24/96
                         </span>
                       </button>
                     }
@@ -532,10 +526,10 @@ const OverlayPlayer = ({
                   <button
                     onClick={toggleRepeatMode}
                     className={cn(
-                      "rounded-2xl h-12 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs",
+                      "rounded-2xl h-14 flex-1 flex items-center justify-center border transition-all active:scale-95 shadow-xs cursor-pointer",
                       repeatMode !== "off"
-                        ? "bg-primary/20 text-primary border-primary/30"
-                        : "bg-secondary/70 hover:bg-secondary text-foreground border-white/5"
+                        ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/30"
+                        : "bg-[#14191e] hover:bg-[#1c2228] text-white border-white/5"
                     )}
                     aria-label="Repeat Mode"
                   >

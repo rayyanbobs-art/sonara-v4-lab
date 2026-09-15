@@ -1,349 +1,407 @@
-import { useState, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  ArrowUpDown,
-  Music,
+  ChevronLeft,
   Play,
-  Search,
   Shuffle,
-  User,
+  ArrowUp,
+  Lock,
+  Music,
 } from "lucide-react";
-import { getFormattedDuration } from "@/lib/helpers";
 import useAppStore from "@/store/app-store";
+import useGetSongsByPlaylistQuery from "@/features/playlists/api/useGetSongsByPlaylistQuery";
+import ActionsDropdown from "@/features/songs/components/ActionsDropdown";
+import AddToPlaylistDialog from "@/features/playlists/components/AddToPlaylistDialog";
 import EditPlaylistDialog from "@/features/playlists/components/EditPlaylistDialog";
 import DeletePlaylistAlert from "@/features/playlists/components/DeletePlaylistAlert";
-import SongsTable from "@/features/songs/components/SongsTable";
-import AddSongsToPlaylistDialog from "@/features/playlists/components/AddSongsToPlaylistDialog";
-import useGetSongsByPlaylistQuery from "@/features/playlists/api/useGetSongsByPlaylistQuery";
-import useRemoveSongFromPlaylistMutation from "@/features/playlists/api/useRemoveSongFromPlaylistMutation";
 
 export const Route = createFileRoute("/playlists/$id")({
   component: RouteComponent,
 });
 
+const SAMPLE_PLAYLIST_NAMES: Record<number, { name: string; cover: string }> = {
+  [-1]: {
+    name: "Imported Playlist",
+    cover: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+  },
+  [-2]: {
+    name: "fR3qu3n.cy",
+    cover: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+  },
+  [-3]: {
+    name: "Codnunen",
+    cover: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
+  },
+  [-4]: {
+    name: "Spotifeye",
+    cover: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+  },
+  [-5]: {
+    name: "Drifting Glacier",
+    cover: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80",
+  },
+  [-6]: {
+    name: "Crimson Canyon",
+    cover: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+  },
+  [-7]: {
+    name: "Hazy Monsoon",
+    cover: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+  },
+  [-8]: {
+    name: "Restless Cosmos",
+    cover: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
+  },
+  [-9]: {
+    name: "Halo",
+    cover: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&q=80",
+  },
+};
+
+const SAMPLE_SONGS: Song[] = [
+  {
+    id: -101,
+    title: "pulse",
+    artist_id: 11,
+    artist_name: "optic core",
+    album_id: 11,
+    album_name: "pulse",
+    album_cover_path: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80",
+    album_artist_name: "optic core",
+    duration: 184,
+    track_number: 1,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 32,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -102,
+    title: "She Was Never Real",
+    artist_id: 12,
+    artist_name: "Puhf",
+    album_id: 12,
+    album_name: "She Was Never Real",
+    album_cover_path: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80",
+    album_artist_name: "Puhf",
+    duration: 210,
+    track_number: 2,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 45,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -103,
+    title: "save file 2",
+    artist_id: 11,
+    artist_name: "optic core",
+    album_id: 11,
+    album_name: "save file 2",
+    album_cover_path: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80",
+    album_artist_name: "optic core",
+    duration: 198,
+    track_number: 3,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 19,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -104,
+    title: "HATSUMI",
+    artist_id: 13,
+    artist_name: "Muddyoush",
+    album_id: 13,
+    album_name: "HATSUMI",
+    album_cover_path: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80",
+    album_artist_name: "Muddyoush",
+    duration: 175,
+    track_number: 4,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 57,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -105,
+    title: "save file 1",
+    artist_id: 11,
+    artist_name: "optic core",
+    album_id: 11,
+    album_name: "save file 1",
+    album_cover_path: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&q=80",
+    album_artist_name: "optic core",
+    duration: 220,
+    track_number: 5,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 28,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -106,
+    title: "The Voices Told Me To",
+    artist_id: 12,
+    artist_name: "Puhf",
+    album_id: 12,
+    album_name: "The Voices Told Me To",
+    album_cover_path: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80",
+    album_artist_name: "Puhf",
+    duration: 164,
+    track_number: 6,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 61,
+    created_at: 1716000000,
+    is_online: true,
+  },
+  {
+    id: -107,
+    title: "idontloveyouanymore",
+    artist_id: 12,
+    artist_name: "Puhf",
+    album_id: 12,
+    album_name: "idontloveyouanymore",
+    album_cover_path: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=400&q=80",
+    album_artist_name: "Puhf",
+    duration: 240,
+    track_number: 7,
+    path: "",
+    is_favorite: false,
+    favorite_added_at: null,
+    last_played_at: null,
+    play_count: 73,
+    created_at: 1716000000,
+    is_online: true,
+  },
+];
+
 function RouteComponent() {
   const { id } = Route.useParams();
-  const { data } = useGetSongsByPlaylistQuery(Number(id));
-  const songs = data?.songs ?? [];
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const totalDuration = useMemo(
-    () => songs.reduce((total, song) => total + song.duration, 0),
-    [songs]
-  );
-
-  const filteredSongs = useMemo(() => {
-    if (!searchQuery.trim()) return songs;
-    const q = searchQuery.toLowerCase();
-    return songs.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.artist_name?.toLowerCase().includes(q) ||
-        s.album_name?.toLowerCase().includes(q)
-    );
-  }, [songs, searchQuery]);
-
-  const uniqueArtists = useMemo(() => {
-    return Array.from(
-      new Set(songs.map((s) => s.artist_name).filter(Boolean))
-    ).slice(0, 5) as string[];
-  }, [songs]);
-
-  const firstCover = useMemo(() => {
-    const songWithCover = songs.find((s) => s.album_cover_path);
-    if (!songWithCover?.album_cover_path) return null;
-    return songWithCover.album_cover_path.startsWith("http")
-      ? songWithCover.album_cover_path
-      : convertFileSrc(songWithCover.album_cover_path);
-  }, [songs]);
-
-  const parentRef = useRef<HTMLDivElement>(null);
-  const rowVirtualizer = useVirtualizer({
-    count: filteredSongs.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 48,
-    overscan: 8,
-    getItemKey: (index) => filteredSongs[index]?.id ?? index,
-  });
-
-  const { mutate } = useRemoveSongFromPlaylistMutation();
+  const playlistId = Number(id);
+  const { data } = useGetSongsByPlaylistQuery(playlistId);
 
   const playSong = useAppStore((state) => state.playSong);
   const isShuffle = useAppStore((state) => state.isShuffle);
   const setIsShuffle = useAppStore((state) => state.setIsShuffle);
+  const currentSong = useAppStore((state) => state.currentSong);
 
-  const handleSongClick = (song: Song) => {
-    if (filteredSongs.length > 0) {
-      playSong(song, filteredSongs);
+  const playlistInfo = useMemo(() => {
+    if (data?.playlist) {
+      return {
+        name: data.playlist.name,
+        cover: data.songs[0]?.album_cover_path
+          ? data.songs[0].album_cover_path.startsWith("http")
+            ? data.songs[0].album_cover_path
+            : convertFileSrc(data.songs[0].album_cover_path)
+          : "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+      };
     }
-  };
+    return (
+      SAMPLE_PLAYLIST_NAMES[playlistId] || {
+        name: "Hazy Monsoon",
+        cover: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+      }
+    );
+  }, [data, playlistId]);
+
+  const songsList = useMemo(() => {
+    if (data?.songs && data.songs.length > 0) {
+      return data.songs;
+    }
+    return SAMPLE_SONGS;
+  }, [data]);
 
   const handlePlayAll = () => {
-    if (filteredSongs.length > 0) {
-      playSong(filteredSongs[0], filteredSongs);
+    if (songsList.length > 0) {
+      playSong(songsList[0], songsList);
     }
   };
 
-  const handleShuffle = () => {
+  const handleShufflePlay = () => {
     setIsShuffle(!isShuffle);
-    if (filteredSongs.length > 0) {
-      playSong(filteredSongs[0], filteredSongs);
+    if (songsList.length > 0) {
+      const randomIndex = Math.floor(Math.random() * songsList.length);
+      playSong(songsList[randomIndex], songsList);
     }
   };
 
-  const handleRemoveFromPlaylist = (songId: number) => {
-    mutate({ songIds: [songId], playlistId: Number(id) });
+  const handleTrackClick = (song: Song) => {
+    playSong(song, songsList);
   };
 
-  if (!data) return null;
+  const handleBack = () => {
+    window.history.back();
+  };
 
-  const virtualRows = rowVirtualizer.getVirtualItems();
-  const visibleSongs = virtualRows.map((row) => filteredSongs[row.index]);
   return (
-    <main
-      ref={parentRef}
-      className="p-3 sm:p-6 pt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:pt-20 pb-36 md:pb-28 w-full h-screen overflow-y-auto custom-scrollbar"
-    >
-      <div className="flex flex-col lg:flex-row gap-8 items-start max-w-7xl mx-auto">
-        {/* Left Column: Header, Actions, and Songs Table */}
-        <div className="flex-1 min-w-0 w-full space-y-6">
-          {/* Mobile Top Search Bar & Sort (Figma mobile_playlist.png) */}
-          <div className="flex sm:hidden items-center gap-2 pt-1 pb-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                placeholder="Search playlist"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 h-10 rounded-full bg-white/5 border-white/10 text-xs focus:bg-white/10"
-              />
-            </div>
-            <button
-              className="p-2.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground hover:text-white transition-colors"
-              aria-label="Sort Playlist"
-            >
-              <ArrowUpDown size={15} />
-            </button>
-          </div>
+    <main className="relative w-full h-screen overflow-y-auto custom-scrollbar bg-[#0d1015] pb-36">
+      {/* Dynamic Ambient Cover Background with Gradient Overlay (Screenshot 2) */}
+      <div className="relative w-full h-80 sm:h-96 overflow-hidden">
+        <img
+          src={playlistInfo.cover}
+          alt={playlistInfo.name}
+          className="w-full h-full object-cover scale-105 filter blur-xs brightness-80"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-[#0d1015]" />
 
-          {/* Mobile Artwork Hero (Figma mobile_playlist.png) */}
-          <div className="flex sm:hidden flex-col items-center text-center space-y-4 pt-2 pb-2">
-            <div className="relative size-56 rounded-2xl overflow-hidden shadow-2xl bg-white/5 border border-white/10 border-b-4 border-indigo-500 flex items-center justify-center">
-              {firstCover ? (
-                <img
-                  src={firstCover}
-                  alt={data.playlist.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Music className="size-16 text-primary/60" />
-              )}
-              <div className="absolute bottom-3 left-3 right-3 py-1.5 px-3 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 flex items-center gap-2">
-                <div className="w-1 h-3.5 rounded-full bg-indigo-500" />
-                <span className="text-xs font-black text-white truncate">
-                  {data.playlist.name}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold font-heading text-foreground tracking-tight">
-                {data.playlist.name}
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                By Sonara • {songs.length} {songs.length === 1 ? "song" : "songs"} •{" "}
-                {getFormattedDuration(totalDuration)}
-              </p>
-            </div>
-
-            {/* Mobile Action Buttons */}
-            <div className="flex items-center justify-between w-full max-w-sm pt-2 px-2">
-              <div className="flex items-center gap-2">
-                <AddSongsToPlaylistDialog playlistId={Number(id)} />
-                <EditPlaylistDialog playlist={data.playlist} />
-                <DeletePlaylistAlert playlistId={Number(id)} />
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleShuffle}
-                  className={`p-2 rounded-full transition-colors ${
-                    isShuffle ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  aria-label="Shuffle"
-                >
-                  <Shuffle size={20} />
-                </button>
-                <button
-                  onClick={handlePlayAll}
-                  aria-label="Play All"
-                  className="size-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
-                >
-                  <Play size={20} className="fill-current ml-0.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop Header (Figma desktop_playlist.png) */}
-          <div className="hidden sm:flex flex-col gap-4 pb-4 border-b border-border/60">
-            <div className="space-y-1.5">
-              <h1 className="text-3xl lg:text-5xl font-black font-heading text-foreground tracking-tight">
-                {data.playlist.name}
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-                By <span className="text-foreground font-semibold">Sonara</span> &bull;{" "}
-                {songs.length} {songs.length === 1 ? "song" : "songs"} &bull;{" "}
-                {getFormattedDuration(totalDuration)}
-              </p>
-            </div>
-
-            {/* Desktop Control Bar */}
-            <div className="flex items-center justify-between gap-4 pt-1">
-              <div className="flex items-center gap-3">
-                <Button
-                  size="icon-lg"
-                  onClick={handlePlayAll}
-                  aria-label="Play All"
-                  className="size-12 sm:size-13 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-transform"
-                >
-                  <Play size={22} className="fill-current ml-0.5" />
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleShuffle}
-                  aria-label="Shuffle"
-                  className={`rounded-full size-10 ${
-                    isShuffle ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Shuffle size={19} />
-                </Button>
-
-                <AddSongsToPlaylistDialog playlistId={Number(id)} />
-                <EditPlaylistDialog playlist={data.playlist} />
-                <DeletePlaylistAlert playlistId={Number(id)} />
-              </div>
-
-              {/* Desktop Filter Search Pill */}
-              <div className="relative w-52 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Filter songs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8.5 pr-3 h-9 rounded-full bg-muted/50 border-border text-xs text-foreground placeholder:text-muted-foreground focus:bg-muted transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Virtualized Songs Table */}
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              position: "relative",
-            }}
+        {/* Top Navigation Bar: Back & Options */}
+        <div className="absolute top-0 left-0 right-0 pt-[calc(0.75rem+env(safe-area-inset-top,0px))] px-4 flex items-center justify-between z-10">
+          <button
+            onClick={handleBack}
+            className="size-10 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-md"
+            aria-label="Go Back"
           >
-            {filteredSongs.length === 0 ? (
-              <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
-                <p className="text-muted-foreground text-sm">
-                  {searchQuery
-                    ? "No songs matching your search."
-                    : "No songs in this playlist yet."}
-                </p>
-                {!searchQuery && (
-                  <AddSongsToPlaylistDialog playlistId={Number(id)} />
-                )}
-              </div>
-            ) : (
-              <div
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  transform: `translateY(${virtualRows[0]?.start ?? 0}px)`,
-                }}
-              >
-                <SongsTable
-                  songs={visibleSongs}
-                  handleSongClick={handleSongClick}
-                  renderActions={(song) => (
-                    <DropdownMenuItem
-                      className="text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFromPlaylist(song.id);
-                      }}
-                    >
-                      Remove from Playlist
-                    </DropdownMenuItem>
-                  )}
-                />
-              </div>
-            )}
+            <ChevronLeft className="size-6" />
+          </button>
+
+          {data?.playlist && (
+            <div className="flex items-center gap-1.5">
+              <EditPlaylistDialog playlist={data.playlist} />
+              <DeletePlaylistAlert playlistId={playlistId} />
+            </div>
+          )}
+        </div>
+
+        {/* Hero Title & Subtext (Screenshot 2) */}
+        <div className="absolute bottom-4 left-0 right-0 px-4 sm:px-8 max-w-3xl mx-auto space-y-1">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black font-heading text-white tracking-tight drop-shadow-md">
+            {playlistInfo.name}
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-300 font-medium drop-shadow-xs">
+            {songsList.length} songs • Aug 23, 2026
+          </p>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-4 pt-2">
+        {/* Action Controls Bar (Screenshot 2) */}
+        <div className="flex items-center gap-3">
+          {/* Squircle Shuffle Button */}
+          <button
+            onClick={handleShufflePlay}
+            className={`size-12 rounded-2xl flex items-center justify-center border transition-all active:scale-95 cursor-pointer shadow-md ${
+              isShuffle
+                ? "bg-cyan-500/20 border-cyan-500 text-cyan-400"
+                : "bg-[#1e252d] border-white/5 text-white hover:bg-[#28323c]"
+            }`}
+            aria-label="Shuffle"
+          >
+            <Shuffle className="size-5" />
+          </button>
+
+          {/* Large Pill Play Button */}
+          <button
+            onClick={handlePlayAll}
+            className="h-12 px-7 rounded-full bg-[#dbe4ec] hover:bg-white text-[#12171c] font-bold text-sm sm:text-base flex items-center gap-2.5 shadow-xl active:scale-95 transition-all cursor-pointer"
+          >
+            <Play className="size-4.5 fill-current" />
+            <span>Play</span>
+          </button>
+        </div>
+
+        {/* Order & Total Tracks Bar (Screenshot 2) */}
+        <div className="flex items-center justify-between pt-1 pb-1">
+          <button
+            type="button"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#1e252d] hover:bg-[#28323c] text-xs font-semibold text-white border border-white/5 shadow-xs transition-all active:scale-95 cursor-pointer"
+          >
+            <span>Custom order</span>
+            <ArrowUp className="size-3.5 text-zinc-300" />
+          </button>
+
+          <div className="flex items-center gap-1 text-xs text-zinc-400 font-medium">
+            <span>{songsList.length} tracks</span>
+            <Lock className="size-3 text-zinc-400 ml-0.5" />
           </div>
         </div>
 
-        {/* Right Column: Desktop Preview Panel (Figma desktop_playlist.png) */}
-        <div className="hidden lg:flex flex-col w-72 xl:w-80 shrink-0 space-y-6 pt-1 pl-4 border-l border-white/5">
-          {/* Large Square Artwork with Neon Accent Glow */}
-          <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-2xl bg-white/5 border border-white/10 border-b-4 border-indigo-500 flex items-center justify-center">
-            {firstCover ? (
-              <img
-                src={firstCover}
-                alt={data.playlist.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Music className="size-20 text-primary/60" />
-            )}
-            <div className="absolute bottom-3 left-3 right-3 py-2 px-3 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 flex items-center gap-2">
-              <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
-              <span className="text-sm font-black text-white truncate">
-                {data.playlist.name}
-              </span>
-            </div>
-          </div>
+        {/* Songs List (Screenshot 2) */}
+        <div className="space-y-1">
+          {songsList.map((song, index) => {
+            const isPlayingThis = currentSong?.id === song.id;
+            const coverUrl = song.album_cover_path
+              ? song.album_cover_path.startsWith("http")
+                ? song.album_cover_path
+                : convertFileSrc(song.album_cover_path)
+              : "";
 
-          {/* Vibe Tags matching Figma */}
-          <div className="flex flex-wrap gap-2">
-            {["Electronic", "Pop", "Streaming", "Favorites"].map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full text-[11px] font-semibold bg-white/5 border border-white/10 text-neutral-300 hover:bg-white/10 cursor-pointer transition-colors"
+            return (
+              <div
+                key={song.id}
+                onClick={() => handleTrackClick(song)}
+                className={`group flex items-center justify-between py-2 px-2 rounded-2xl transition-all cursor-pointer select-none ${
+                  isPlayingThis
+                    ? "bg-[#1e2832]/80 border border-cyan-500/20"
+                    : "hover:bg-white/5"
+                }`}
               >
-                {tag}
-              </span>
-            ))}
-          </div>
+                {/* Track Index + Artwork + Title & Artist */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <span className="w-5 text-center text-xs font-bold text-zinc-500 group-hover:text-zinc-300">
+                    {index + 1}
+                  </span>
 
-          {/* Contributing Artists List with Circular Avatars */}
-          {uniqueArtists.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-                Contributing Artists
-              </h4>
-              <div className="space-y-2.5">
-                {uniqueArtists.map((artist) => (
-                  <div
-                    key={artist}
-                    className="flex items-center gap-3 text-sm text-foreground hover:text-primary transition-colors"
-                  >
-                    <div className="size-9 rounded-full bg-linear-to-br from-primary/30 to-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                      {artist[0]?.toUpperCase() || <User className="size-4" />}
-                    </div>
-                    <span className="font-semibold truncate">{artist}</span>
+                  <div className="size-11 rounded-xl overflow-hidden bg-[#1f262e] shrink-0 border border-white/5 shadow-xs">
+                    {coverUrl ? (
+                      <img
+                        src={coverUrl}
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Music className="size-5 text-zinc-500" />
+                      </div>
+                    )}
                   </div>
-                ))}
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <h4
+                      className={`text-sm font-bold truncate ${
+                        isPlayingThis ? "text-cyan-400" : "text-white"
+                      }`}
+                    >
+                      {song.title}
+                    </h4>
+                    <p className="text-xs text-zinc-400 font-medium truncate">
+                      {song.artist_name || "Unknown Artist"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Options 3-dots */}
+                <div
+                  className="shrink-0 ml-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <ActionsDropdown song={song}>
+                    <AddToPlaylistDialog song={song} />
+                  </ActionsDropdown>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })}
         </div>
       </div>
     </main>

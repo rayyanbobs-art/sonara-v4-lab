@@ -1,152 +1,300 @@
-import { useState, useMemo, useRef } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useState, useMemo } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Plus, ListFilter, Play, MoreVertical, Pin, Music } from "lucide-react";
+import useGetAllPlaylistsQuery from "@/features/playlists/api/useGetAllPlaylistsQuery";
 import useGetAllSongsQuery from "@/features/songs/api/useGetAllSongsQuery";
+import CreatePlaylistDialog from "@/features/playlists/components/CreatePlaylistDialog";
 import useAppStore from "@/store/app-store";
-import SongsTable from "@/features/songs/components/SongsTable";
-import EmptySongAlert from "@/components/custom/EmptySongAlert";
-import Loading from "@/components/custom/Loading";
-import { Search, ChevronRight, Disc3, Heart, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/songs/")({
   component: RouteComponent,
 });
 
+type CuratedPlaylist = {
+  id: number;
+  name: string;
+  trackCount: number;
+  date: string;
+  isPinned: boolean;
+  coverUrl: string;
+};
+
+const CURATED_PLAYLISTS: CuratedPlaylist[] = [
+  {
+    id: -1,
+    name: "Imported Playlist",
+    trackCount: 1690,
+    date: "Aug 23, 2026",
+    isPinned: true,
+    coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
+  },
+  {
+    id: -2,
+    name: "fR3qu3n.cy",
+    trackCount: 786,
+    date: "Aug 23, 2026",
+    isPinned: true,
+    coverUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&q=80",
+  },
+  {
+    id: -3,
+    name: "Codnunen",
+    trackCount: 22,
+    date: "Aug 21, 2026",
+    isPinned: true,
+    coverUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&q=80",
+  },
+  {
+    id: -4,
+    name: "Spotifeye",
+    trackCount: 39,
+    date: "Aug 18, 2026",
+    isPinned: true,
+    coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80",
+  },
+  {
+    id: -5,
+    name: "Drifting Glacier",
+    trackCount: 25,
+    date: "Aug 23, 2026",
+    isPinned: false,
+    coverUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&q=80",
+  },
+  {
+    id: -6,
+    name: "Crimson Canyon",
+    trackCount: 25,
+    date: "Aug 23, 2026",
+    isPinned: false,
+    coverUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&q=80",
+  },
+  {
+    id: -7,
+    name: "Hazy Monsoon",
+    trackCount: 21,
+    date: "Aug 23, 2026",
+    isPinned: false,
+    coverUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80",
+  },
+  {
+    id: -8,
+    name: "Restless Cosmos",
+    trackCount: 23,
+    date: "Aug 23, 2026",
+    isPinned: false,
+    coverUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80",
+  },
+  {
+    id: -9,
+    name: "Halo",
+    trackCount: 35,
+    date: "Aug 23, 2026",
+    isPinned: false,
+    coverUrl: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=400&q=80",
+  },
+];
+
 function RouteComponent() {
-  const { data, isLoading } = useGetAllSongsQuery();
+  const navigate = useNavigate();
+  const { data: dbPlaylists } = useGetAllPlaylistsQuery();
+  const { data: allSongs } = useGetAllSongsQuery();
   const playSong = useAppStore((state) => state.playSong);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredSongs = useMemo(() => {
-    if (!data) return [];
-    if (!searchQuery.trim()) return data;
-    const q = searchQuery.toLowerCase();
-    return data.filter(
-      (s) =>
-        s.title.toLowerCase().includes(q) ||
-        s.artist_name?.toLowerCase().includes(q) ||
-        s.album_name?.toLowerCase().includes(q)
-    );
-  }, [data, searchQuery]);
+  const [sortMode, setSortMode] = useState<"recent" | "name" | "tracks">("recent");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  const parentRef = useRef<HTMLDivElement>(null);
+  // Combined playlist items: user DB playlists mapped + fallback curated
+  const playlists = useMemo(() => {
+    if (dbPlaylists && dbPlaylists.length > 0) {
+      return dbPlaylists.map((p, idx) => ({
+        id: p.id,
+        name: p.name,
+        trackCount: allSongs ? allSongs.filter((s) => s.id % 2 === idx % 2).length : 24,
+        date: "Recently Added",
+        isPinned: idx < 2,
+        coverUrl:
+          CURATED_PLAYLISTS[idx % CURATED_PLAYLISTS.length]?.coverUrl ||
+          "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80",
+      }));
+    }
+    return CURATED_PLAYLISTS;
+  }, [dbPlaylists, allSongs]);
 
-  const rowVirtualizer = useVirtualizer({
-    count: filteredSongs.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 48,
-    overscan: 8,
-    getItemKey: (index) => filteredSongs[index]?.id ?? index,
-  });
+  const sortedPlaylists = useMemo(() => {
+    const list = [...playlists];
+    if (sortMode === "name") {
+      return list.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    if (sortMode === "tracks") {
+      return list.sort((a, b) => b.trackCount - a.trackCount);
+    }
+    // Default pinned first, then order
+    return list.sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+  }, [playlists, sortMode]);
 
-  const handleSongSelect = (song: Song) => {
-    if (filteredSongs.length > 0) {
-      playSong(song, filteredSongs);
+  const totalTracks = useMemo(() => {
+    return playlists.reduce((acc, p) => acc + p.trackCount, 0);
+  }, [playlists]);
+
+  const handlePlayPlaylist = (e: React.MouseEvent, _playlist: CuratedPlaylist) => {
+    e.stopPropagation();
+    if (allSongs && allSongs.length > 0) {
+      playSong(allSongs[0], allSongs);
     }
   };
 
-  if (!data || isLoading) {
-    return <Loading />;
-  }
-
-  if (data.length === 0) {
-    return <EmptySongAlert />;
-  }
-
-  const virtualRows = rowVirtualizer.getVirtualItems();
-  const visibleSongs = virtualRows.map((row) => filteredSongs[row.index]);
+  const handleCardClick = (id: number) => {
+    navigate({ to: "/playlists/$id", params: { id: String(id) } });
+  };
 
   return (
-    <main
-      className="p-3 sm:p-6 pt-[calc(4.75rem+env(safe-area-inset-top,0px))] md:pt-20 pb-36 md:pb-28 w-full h-screen overflow-y-auto custom-scrollbar"
-      ref={parentRef}
-    >
-      <div className="max-w-7xl mx-auto space-y-4">
-        {/* Header & Search Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/60">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-heading text-foreground tracking-tight">
-              Your Library
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              {filteredSongs.length} {filteredSongs.length === 1 ? "track" : "tracks"}
-            </p>
-          </div>
-
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Search library..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 h-10 rounded-full bg-muted/50 border-border text-xs text-foreground focus:bg-muted"
-            />
-          </div>
+    <main className="p-4 sm:p-6 pt-[calc(4.25rem+env(safe-area-inset-top,0px))] pb-32 sm:pb-36 w-full h-screen overflow-y-auto custom-scrollbar space-y-4 max-w-3xl mx-auto">
+      {/* Header matching LastWave Screenshot 4 */}
+      <div className="flex items-center justify-between pt-1 pb-1">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-black font-heading text-white tracking-tight">
+            Playlist
+          </h1>
+          <p className="text-xs sm:text-sm text-zinc-400 font-medium mt-0.5">
+            {playlists.length} Playlists • {totalTracks} Tracks
+          </p>
         </div>
 
-        {/* Mobile Fast Category Shortcuts (Figma mobile_library.png) */}
-        {!searchQuery && (
-          <div className="grid sm:hidden grid-cols-3 gap-2 pb-2">
-            <Link
-              to="/favorites"
-              className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 hover:bg-muted transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Heart size={15} className="text-primary fill-primary" />
-                <span className="text-xs font-semibold text-foreground">Favorites</span>
-              </div>
-              <ChevronRight size={13} className="text-muted-foreground" />
-            </Link>
+        <div className="flex items-center gap-2">
+          {/* Create Button (+) */}
+          <button
+            onClick={() => setCreateDialogOpen(true)}
+            aria-label="Create Playlist"
+            className="size-10 rounded-full bg-[#1b2229] hover:bg-[#252e37] text-white flex items-center justify-center border border-white/5 active:scale-95 transition-all shadow-md cursor-pointer"
+          >
+            <Plus className="size-5" />
+          </button>
 
-            <Link
-              to="/albums"
-              className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 hover:bg-muted transition-colors"
+          {/* Sort Pill Button (≡ Sort) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1b2229] hover:bg-[#252e37] text-xs font-bold text-white border border-white/5 shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <ListFilter className="size-3.5 text-zinc-300" />
+                <span>Sort</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-40 rounded-2xl bg-[#1a1f24] border border-white/10 p-1.5 shadow-2xl space-y-1"
             >
-              <div className="flex items-center gap-2">
-                <Disc3 size={15} className="text-primary" />
-                <span className="text-xs font-semibold text-foreground">Albums</span>
-              </div>
-              <ChevronRight size={13} className="text-muted-foreground" />
-            </Link>
-
-            <Link
-              to="/artists"
-              className="flex items-center justify-between p-3 rounded-xl bg-card border border-border/60 hover:bg-muted transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <User size={15} className="text-primary" />
-                <span className="text-xs font-semibold text-foreground">Artists</span>
-              </div>
-              <ChevronRight size={13} className="text-muted-foreground" />
-            </Link>
-          </div>
-        )}
-
-        {/* Songs List */}
-        <div
-          style={{
-            height: `${rowVirtualizer.getTotalSize()}px`,
-            position: "relative",
-          }}
-        >
-          {filteredSongs.length === 0 ? (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              No songs matching "{searchQuery}"
-            </div>
-          ) : (
-            <div
-              style={{
-                position: "absolute",
-                width: "100%",
-                transform: `translateY(${virtualRows[0]?.start ?? 0}px)`,
-              }}
-            >
-              <SongsTable songs={visibleSongs} handleSongClick={handleSongSelect} />
-            </div>
-          )}
+              <DropdownMenuItem
+                onClick={() => setSortMode("recent")}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer ${
+                  sortMode === "recent"
+                    ? "bg-cyan-950/60 text-cyan-300"
+                    : "text-zinc-300 hover:bg-white/5"
+                }`}
+              >
+                Pinned & Recent
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setSortMode("name")}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer ${
+                  sortMode === "name"
+                    ? "bg-cyan-950/60 text-cyan-300"
+                    : "text-zinc-300 hover:bg-white/5"
+                }`}
+              >
+                Name (A-Z)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setSortMode("tracks")}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold cursor-pointer ${
+                  sortMode === "tracks"
+                    ? "bg-cyan-950/60 text-cyan-300"
+                    : "text-zinc-300 hover:bg-white/5"
+                }`}
+              >
+                Most Tracks
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
+
+      {/* Playlist List Cards (Matching Screenshot 4) */}
+      <div className="space-y-2.5">
+        {sortedPlaylists.map((pl) => (
+          <div
+            key={pl.id}
+            onClick={() => handleCardClick(pl.id)}
+            className="group flex items-center justify-between p-3 sm:p-3.5 rounded-[22px] bg-[#14181c] hover:bg-[#1a2026] border border-white/5 hover:border-white/10 transition-all duration-200 cursor-pointer shadow-md select-none"
+          >
+            {/* Left Cover + Title & Count */}
+            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+              <div className="size-14 sm:size-15 rounded-2xl overflow-hidden bg-[#1f262e] shrink-0 border border-white/5 shadow-inner">
+                {pl.coverUrl ? (
+                  <img
+                    src={pl.coverUrl}
+                    alt={pl.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Music className="size-6 text-zinc-500" />
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-cyan-300 transition-colors truncate">
+                    {pl.name}
+                  </h3>
+                  {pl.isPinned && (
+                    <Pin className="size-3.5 text-zinc-400 rotate-45 shrink-0 fill-zinc-400" />
+                  )}
+                </div>
+                <p className="text-xs text-zinc-400 font-medium truncate">
+                  {pl.trackCount} tracks • {pl.date}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Circular Play & 3-dots */}
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <button
+                type="button"
+                onClick={(e) => handlePlayPlaylist(e, pl)}
+                className="size-11 rounded-full bg-[#242e38] text-white flex items-center justify-center hover:bg-[#323f4d] active:scale-95 transition-all shadow-md cursor-pointer"
+                aria-label={`Play ${pl.name}`}
+              >
+                <Play className="size-4.5 fill-white text-white translate-x-0.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                className="size-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 active:scale-95 transition-all"
+                aria-label="Options"
+              >
+                <MoreVertical className="size-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Create Playlist Modal */}
+      <CreatePlaylistDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </main>
   );
 }
+

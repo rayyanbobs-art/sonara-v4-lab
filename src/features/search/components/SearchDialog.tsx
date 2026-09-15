@@ -18,7 +18,11 @@ import useAppStore from "@/store/app-store";
 import useDebounce from "@/hooks/useDebounce";
 import OnlineSearchSection from "@/features/online/components/OnlineSearchSection";
 
-const SearchDialog = () => {
+interface SearchDialogProps {
+  trigger?: React.ReactNode;
+}
+
+const SearchDialog = ({ trigger }: SearchDialogProps = {}) => {
   const [mode, setMode] = useState<"library" | "online">("library");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce({ value: search });
@@ -35,15 +39,19 @@ const SearchDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="flex justify-start items-center border border-border bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground gap-2 flex-1 min-w-0 max-w-sm h-9 px-4 rounded-full overflow-hidden transition-colors"
-        >
-          <Search size={15} className="shrink-0 text-muted-foreground" />
-          <span className="text-xs font-heading truncate">
-            Search library or stream...
-          </span>
-        </Button>
+        {trigger ? (
+          trigger
+        ) : (
+          <Button
+            variant="outline"
+            className="flex justify-start items-center border border-border bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground gap-2 flex-1 min-w-0 max-w-sm h-9 px-4 rounded-full overflow-hidden transition-colors"
+          >
+            <Search size={15} className="shrink-0 text-muted-foreground" />
+            <span className="text-xs font-heading truncate">
+              Search library or stream...
+            </span>
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent showCloseButton={false} className="w-[95vw] max-w-2xl max-h-[85vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>

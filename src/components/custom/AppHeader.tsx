@@ -1,17 +1,17 @@
 import { useRef } from "react";
-import { ChevronLeft, Home, Settings, Sparkles, User } from "lucide-react";
+import { ChevronLeft, Compass, Search, User } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { platform } from "@tauri-apps/plugin-os";
-import { Button } from "@/components/ui/button";
-import { Link, useCanGoBack, useRouter } from "@tanstack/react-router";
+import { Link, useCanGoBack, useLocation, useRouter } from "@tanstack/react-router";
 import SearchDialog from "@/features/search/components/SearchDialog";
-import ImportButton from "@/features/import/components/ImportButton";
 
 const AppHeader = () => {
   const router = useRouter();
+  const location = useLocation();
   const canGoBack = useCanGoBack();
   const containerRef = useRef<HTMLDivElement>(null);
   const appWindow = getCurrentWindow();
+  const isHome = location.pathname === "/";
 
   const handleBack = () => {
     if (canGoBack) {
@@ -24,7 +24,7 @@ const AppHeader = () => {
   const currentPlatform = platform();
   const isMacOS = currentPlatform === "macos";
 
-  const handler = async (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+  const handleDrag = async (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.buttons === 1) {
@@ -39,73 +39,64 @@ const AppHeader = () => {
   return (
     <header
       ref={containerRef}
-      onMouseDown={isMacOS ? handler : undefined}
+      onMouseDown={isMacOS ? handleDrag : undefined}
       data-tauri-drag-region={isMacOS}
       style={{
-        top: "max(0.5rem, env(safe-area-inset-top, 0px))",
+        paddingTop: "max(0.75rem, env(safe-area-inset-top, 0px))",
       }}
-      className="h-14 px-2.5 sm:px-4 py-2 fixed right-2 left-2 md:left-64 rounded-2xl md:rounded-3xl shadow-xl border border-border/60 bg-card/85 backdrop-blur-2xl z-20 flex items-center justify-between gap-3 overflow-hidden"
+      className="fixed top-0 left-0 right-0 z-30 px-4 pb-3 flex items-center justify-between bg-background/80 backdrop-blur-xl border-b border-border/20 transition-all select-none"
     >
-      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-        <Button
-          variant="outline"
-          className="border border-border/60 shrink-0 size-9 rounded-xl bg-muted/50 text-foreground hover:bg-muted"
-          size="icon"
-          onClick={handleBack}
+      {/* Left: Back Button (if not on Home) + LastWave Brand Title */}
+      <div className="flex items-center gap-3">
+        {!isHome && (
+          <button
+            onClick={handleBack}
+            className="size-10 rounded-full bg-[#1b2025] hover:bg-zinc-800 text-white flex items-center justify-center border border-white/5 active:scale-95 transition shadow-xs"
+            aria-label="Back"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+        )}
+        <Link
+          to="/"
+          className="text-2xl sm:text-3xl font-black tracking-tight text-foreground font-heading hover:opacity-90 transition-opacity"
         >
-          <ChevronLeft className="size-4" />
-        </Button>
-
-        {/* Desktop Navigation Pills (Figma Desktop Top Nav) */}
-        <div className="hidden md:flex items-center gap-1.5 shrink-0">
-          <Link
-            to="/"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            activeProps={{
-              className: "bg-primary/15 text-primary font-bold",
-            }}
-          >
-            <Home className="size-4" />
-            <span>Home</span>
-          </Link>
-
-          <Link
-            to="/stream"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            activeProps={{
-              className: "bg-primary/15 text-primary font-bold",
-            }}
-          >
-            <Sparkles className="size-4" />
-            <span>Discover</span>
-          </Link>
-        </div>
-
-        {/* Search Bar / Dialog */}
-        <div className="flex-1 max-w-md">
-          <SearchDialog />
-        </div>
+          LastWave
+        </Link>
       </div>
 
-      {/* Right Utility Group */}
-      <div className="shrink-0 flex items-center gap-1.5 sm:gap-2">
-        <ImportButton />
+      {/* Right: Circle 1 (Compass/Stream), Circle 2 (Search), Circle 3 (Profile/Settings) */}
+      <div className="flex items-center gap-2 sm:gap-2.5">
         <Link
-          to="/settings"
-          className="hidden md:flex items-center justify-center size-9 rounded-full bg-muted/50 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          aria-label="Settings"
+          to="/stream"
+          className="size-10 rounded-full bg-[#1b2025] hover:bg-zinc-800 text-white flex items-center justify-center border border-white/5 active:scale-95 transition shadow-xs"
+          aria-label="Discover & Stream"
         >
-          <Settings className="size-4" />
+          <Compass className="size-5" />
         </Link>
+
+        <SearchDialog
+          trigger={
+            <button
+              type="button"
+              className="size-10 rounded-full bg-[#1b2025] hover:bg-zinc-800 text-white flex items-center justify-center border border-white/5 active:scale-95 transition shadow-xs cursor-pointer"
+              aria-label="Search"
+            >
+              <Search className="size-5" />
+            </button>
+          }
+        />
+
         <Link
           to="/settings"
-          className="flex items-center justify-center size-8 sm:size-9 rounded-full bg-linear-to-br from-primary/30 to-primary/10 border border-primary/20 text-primary hover:opacity-90 transition-opacity"
-          aria-label="User Profile"
+          className="size-10 rounded-full bg-linear-to-br from-cyan-950/80 to-slate-900 border border-cyan-500/30 text-cyan-300 flex items-center justify-center hover:opacity-90 active:scale-95 transition shadow-xs overflow-hidden"
+          aria-label="Profile & Settings"
         >
-          <User className="size-4 sm:size-4.5" />
+          <User className="size-5" />
         </Link>
       </div>
     </header>
   );
 };
+
 export default AppHeader;
