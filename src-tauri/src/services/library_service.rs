@@ -66,7 +66,7 @@ pub fn add_files(conn: &mut rusqlite::Connection, paths: Vec<String>) -> rusqlit
         let (folder_id, _) =
             crate::repositories::folder_repository::find_or_create(conn, &folder_path)?;
 
-        match crate::services::metadata_service::extract_metadata(&p.to_path_buf()) {
+        match crate::services::metadata_service::extract_metadata(p) {
             Ok(metadata) => {
                 if let Err(e) = process_metadata(conn, metadata, folder_id, None) {
                     eprintln!("Process file failed: {}", e);

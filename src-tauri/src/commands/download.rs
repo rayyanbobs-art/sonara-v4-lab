@@ -270,7 +270,7 @@ pub async fn download_online_track(
     };
 
     // 9. Persist lyrics into database for instant offline synced lyrics playback
-    if let Some(ref lrc_content) = synced_lyrics.as_ref().or(plain_lyrics.as_ref()) {
+    if let Some(lrc_content) = synced_lyrics.as_ref().or(plain_lyrics.as_ref()) {
         let _ = crate::repositories::lyrics_repository::update_lyrics_content(
             &conn,
             final_id,
